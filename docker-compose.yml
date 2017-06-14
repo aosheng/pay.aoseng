@@ -1,0 +1,135 @@
+version: '2'
+
+services:
+  #memcached:
+  #  build: ./Dockerfiles/memcached
+  #  ports:
+  #    - 11211:11211
+  #  hostname: docker-memcached
+  #  restart: always
+  #  networks:
+  #    app_net:
+  #      ipv4_address: 172.22.6.10
+  redis:
+    build: ./Dockerfiles/redis
+    ports:
+      - 6379:6379
+    hostname: docker-redis
+    restart: always
+    networks:
+      app_net:
+        ipv4_address: 172.22.6.10
+  mysql:
+    build: ./Dockerfiles/mysql
+    ports:
+      - 3306:3306
+    hostname: docker-mysql
+    volumes:
+      - ../database/mysql:/var/lib/mysql/
+    environment:
+      MYSQL_USER: localhost
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_PASSWORD: password
+      MYSQL_DATABASE: db_local
+    restart: always
+    networks:
+      app_net:
+        ipv4_address: 172.22.6.20
+
+  #postgresql:
+  #  build: ./Dockerfiles/postgresql
+  #  ports:
+  #    - 5432:5432
+  #  hostname: docker-postgresql
+  #  volumes:
+  #    - ../database/postgresql:/var/lib/postgresql/data/
+  #  environment:
+  #    POSTGRES_USER: postgres
+  #    POSTGRES_PASSWORD: password
+  #    POSTGRES_DB: user_log
+  #  restart: always
+  #  networks:
+  #    app_net:
+  #      ipv4_address: 172.22.6.21
+
+  workspace:
+    build: ./Dockerfiles/workspace
+    ports:
+      - "22:22"
+    hostname: docker-workspace
+    volumes:
+      - ../:/var/www/html/
+    links:
+      #- memcached:memcached
+      - redis:redis
+      - mysql:mysql
+      #- postgresql:postgresql
+    restart: always
+    networks:
+      app_net:
+        ipv4_address: 172.22.6.30
+
+  # fpm-php55:
+  #   build: ./Dockerfiles/fpm-php55
+  #   ports:
+  #     - 9000:9000
+  #   hostname: docker-fpm-php55
+  #   volumes:
+  #     - ../:/var/www/html/
+  #   links:
+  #     - memcached:memcached
+  #     - mysql:mysql
+  #     - postgresql:postgresql
+  #   extra_hosts:
+  #     - localhost:172.16.1.50
+  #   restart: always
+  #   networks:
+  #     app_net:
+  #       ipv4_address: 172.16.1.40
+
+  fpm-php70:
+    build: ./Dockerfiles/fpm-php70
+    ports:
+      - 9000:9000
+    hostname: docker-fpm-php70
+    volumes:
+      - ../:/var/www/html/
+    links:
+      #- memcached:memcached
+      - redis:redis
+      - mysql:mysql
+      #- postgresql:postgresql
+    extra_hosts:
+      - localhost:172.22.6.50
+    restart: always
+    networks:
+      app_net:
+        ipv4_address: 172.22.6.41
+
+  nginx:
+    build: ./Dockerfiles/nginx
+    ports:
+      - 80:80
+      - 443:443
+    hostname: docker-nginx
+    volumes:
+      - ../:/var/www/html/
+      - ./Dockerfiles/nginx/sites/:/etc/nginx/conf.d/
+    links:
+      #- fpm-php55:fpm
+      - fpm-php70:fpm
+    restart: always
+    networks:
+      app_net:
+        ipv4_address: 172.22.6.50
+
+networks:
+  app_net:
+    driver: bridge
+    driver_opts:
+        com.docker.network.enable_ipv6: "false"
+    ipam:
+        driver: default
+        config:
+        - subnet: 172.22.6.0/24
+          gateway: 172.22.6.1
