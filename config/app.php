@@ -169,6 +169,9 @@ return [
         Laravel\Tinker\TinkerServiceProvider::class,
         Recca0120\LaravelTracy\LaravelTracyServiceProvider::class,
         Dingo\Api\Provider\LaravelServiceProvider::class,
+        //Barryvdh\LaravelIdeHelper\IdeHelperServiceProvider::class,
+        //Frozennode\Administrator\AdministratorServiceProvider::class,
+        
         /*
          * Application Service Providers...
          */
