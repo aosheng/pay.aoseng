@@ -6,7 +6,6 @@ use Dingo\Api\Routing\Helpers;
 use Jenssegers\Date\Date;
 use Illuminate\Support\Facades\Redis;
 use App\Http\Services\Cache\Api500EasyPayCacheService;
-use App\Jobs\GetTasksToThird;
 
 class Api500EasyPayService
 {
@@ -16,8 +15,14 @@ class Api500EasyPayService
 
     public function __construct(Api500EasyPayCacheService $Api500EasyPayCacheService)
     {
+        require_once(base_path() . '/resources/ThirdPay/500EasyPay/Util.php');
+        require_once(base_path() . '/resources/ThirdPay/500EasyPay/json.php');
+
         date_default_timezone_set("PRC");
         $this->cache_service = $Api500EasyPayCacheService;
+        $this->services_json = new \Services_JSON();
+        $this->util = new \util();
+
     }
 
     public function send($params)
@@ -73,72 +78,67 @@ class Api500EasyPayService
         
         ksort($pay); #排列数组 将数组已a-z排序
         
-		$sign = md5(json_encode($pay) . $config['signKey']); #生成签名
+		$sign = md5($this->util->json_encode($pay) . $config['signKey']); #生成签名
 
-        dd([ $pay, $config['signKey'] ]);
+        //dd([ $pay, $config['signKey'] ]);
 
 		$pay['sign'] = strtoupper($sign); #设置签名
-		$data = json_encode($pay); #将数组转换为JSON格式
+		$data = $this->util->json_encode($pay); #将数组转换为JSON格式
 
 		self::write_log('通知地址：' . $pay['callBackUrl']);
 		self::write_log('提交支付订单：' . $pay['orderNum']);
 
-		$post = array('data ' => $data);
+		$post = array('data' => $data);
         //dd($post);
         // into redis
         // $base_id = uniqid();
-        $input_data = ['url' => $config['payUrl'], 'data' => $data, 'config' => $config];
+        $input_data = ['url' => $config['payUrl'], 'data' => $post, 'config' => $config];
         
         // Redis::rpush('base_id', $base_id);
         // $tasks = Redis::lrange('base_id', 0, 20);
         // Cache::tags(['input_Api500EasyPay'])->put($base_id, $input_data, 20);
 
-        $this->cache_service->setCache('input_Api500EasyPay', $input_data);
+        $this->cache_service->setCache('Api500EasyPay_input', $input_data);
 
-        //Queue::push('GetTasksToThird', 'input_Api500EasyPay');
-        
-        //dispatch(new GetTasksToThird('input_Api500EasyPay'));
-        // get data and del
-        // foreach ($tasks as $task_base_id) {
-        //     // if (true) {
-        //     //     Redis::lpop('base_id');
-        //     //     Cache::tags(['input_Api500EasyPay'])->forget($task_base_id);
-        //     // }
-        //     var_dump(Cache::tags(['input_Api500EasyPay'])->get($task_base_id));
-        // }
-        
 
-        $this->pay($config['payUrl'], $post, $config['signKey']);
+
+        //$this->pay($config['payUrl'], $post, $config['signKey']);
     }
 
-    public function pay($url, $data, $sign_key)
+    public function pay($url, $data, $sign_key, $base_id)
     {
        //dd([$url, $data]);
        
-       $return = $this->curl_post($url, $data);
-       $status = json_decode($return); #将返回json数据转换为数组
-
-		if ($status->stateCode !== '00') {
-            self::write_log('系统错误,错误号：' . $status->stateCode . '错误描述：' . $status->msg);
-            return $this->response->error('系统错误,错误号：' . $status->stateCode . '错误描述：' . $status->msg, 400);
-        }
+        $return = $this->curl_post($url, $data);
+        $status = $this->services_json->decode($return); #将返回json数据转换为数组
+        //self::write_log($return);
+        //dd($status);
+        //var_dump($return);
+        $this->cache_service->setResponseCache('Api500EasyPay', 'response_get_qrcode', $base_id, $status);  
+        $this->cache_service->deleteCache('Api500EasyPay', 'base_id', $base_id);
+        $this->cache_service->deleteTagsCache('Api500EasyPay', 'input', $base_id);
         
-        if (!self::is_sign($status, $sign_key)) { #验证返回签名数据
-            self::write_log('返回签名验证失败!');
-            return $this->response->error('返回签名验证失败!', 403);
-        }
+        // if ($status->stateCode !== '00') {
+        //     self::write_log('系统错误,错误号：' . $status->stateCode . '错误描述：' . $status->msg);
+        //     return $this->response->error('系统错误,错误号：' . $status->stateCode . '错误描述：' . $status->msg, 400);
+        // }
+        
+        // if (!self::is_sign($status, $sign_key)) { #验证返回签名数据
+        //     self::write_log('返回签名验证失败!');
+        //     return $this->response->error('返回签名验证失败!', 403);
+        // }
 		
-        if ($status['stateCode'] == '00') {
-            $stateCode = $status['stateCode'];
-            $msg = $status['msg'];
-            $orderNum = $status['orderNum'];
-            $amount = $status['amount'];
-            $amount = $amount / 100;
-            $string = '创建代付成功!订单号：' . $orderNum . ' 系统消息：' . $msg . ' 代付金额：' . $amount;
-            self::write_log($string);		
-            return $this->response->array($status);
-            //return $this->response->item($status, new Api500EasyPayTransformer);	
-        }
+        // if ($status['stateCode'] == '00') {
+        //     $stateCode = $status['stateCode'];
+        //     $msg = $status['msg'];
+        //     $orderNum = $status['orderNum'];
+        //     $amount = $status['amount'];
+        //     $amount = $amount / 100;
+        //     $string = '创建代付成功!订单号：' . $orderNum . ' 系统消息：' . $msg . ' 代付金额：' . $amount;
+        //     self::write_log($string);		
+        //     return $this->response->array($status);
+        //     //return $this->response->item($status, new Api500EasyPayTransformer);	
+        // }
     }
 
     public function pay_callback()

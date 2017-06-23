@@ -34,9 +34,9 @@ class Api500EasyPayCacheService
 
     public function getCache($tags)
     {
-        $tasks = Redis::lrange($tags . '_base_id', 0, 20);
-        
-        $task_data =  [];
+        $tasks = Redis::lrange($tags . '_base_id', 0, 30);
+        $task_data = [];
+        $return_data = [];
         //dd($tasks);
         //dd(Cache::tags([$tags])->get('input_Api500EasyPay_594b37b3c2db6'));
         foreach ($tasks as $task_base_id) {
@@ -47,18 +47,48 @@ class Api500EasyPayCacheService
             //     Cache::tags(['input_Api500EasyPay'])->forget($task_base_id);
             // }
 
-            //var_dump(Cache::store('redis')->tags([$tags])->get($task_base_id));
-
-            $task_data = Cache::store('redis')->tags([$tags])->get($task_base_id);
+            var_dump(Cache::store('redis')->tags([$tags])->get($task_base_id));
+            
+            $task_data = array_merge(
+                    Cache::store('redis')->tags([$tags])->get($task_base_id),
+                        array('base_id' => $task_base_id)
+                    
+                );
             
             if(!is_null($task_data)) {
-                array_push($task_data, 
-                    array_merge($task_data,
-                        array('base_id' => $task_base_id)
-                    )
-                );
+                // array_push($task_data, 
+                //     array_merge($task_data,
+                //         array('base_id' => $task_base_id)
+                //     )
+                // );
+                array_push($return_data, $task_data);
             }
+           
         }
-        return $task_data;
+        //dd($return_data);
+        return $return_data;
+    }
+
+    public function setResponseCache($tags, $type, $base_id, $data)
+    {
+        
+        Redis::rpush($tags . '_' . $type, $base_id);    
+        Cache::store('redis')->tags([$tags . '_' . $type])->add($base_id, $data, 20);
+
+        //var_dump(Redis::lrange($tags . '_base_id', 0, 50));
+
+        //self::getCache($tags)
+
+    }
+
+    public function deleteCache($tags, $type, $base_id)
+    {
+        Redis::lpop($tags . '_' . $type);
+       
+    }
+
+    public function deleteTagsCache($tags, $type, $base_id)
+    {
+        Cache::store('redis')->tags([$tags. '_' . $type])->forget($base_id);
     }
 }
