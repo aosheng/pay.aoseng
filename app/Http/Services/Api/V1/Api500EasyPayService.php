@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Redis;
 use App\Http\Services\Cache\Api500EasyPayCacheService;
 
 use Log;
+
 class Api500EasyPayService
 {
     use Helpers;
