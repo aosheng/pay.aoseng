@@ -109,17 +109,19 @@ class Api500EasyPayService
         $is_return_data = [];
         $is_return_data = $this->curl_post($url, $data);
         $status = $this->services_json->decode($is_return_data); #将返回json数据转换为数组
-        
-        if ($status->stateCode !== '00') {
+        Log::info('pay return' . print_r($status, true));
+        if ($status['stateCode'] !== '00') {
             //self::write_log('系统错误,错误号：' . $status->stateCode . '错误描述：' . $status->msg);
-            Log::warning('系统错误,错误号：' . $status->stateCode . '错误描述：' . $status->msg);
-            //return $this->response->error('系统错误,错误号：' . $status->stateCode . '错误描述：' . $status->msg, 400);
+            Log::warning('系统错误,错误号：' . $status['stateCode'] . '错误描述：' . $status['msg']);
+            //return $this->response->error('系统错误,错误号：' . $status['stateCode'] . '错误描述：' . $status['msg'], 400);
+            return;
         }
         
         if (!self::is_sign($status, $sign_key)) { #验证返回签名数据
             //self::write_log('返回签名验证失败!');
             Log::warning('返回签名验证失败!');
             //return $this->response->error('返回签名验证失败!', 403);
+            return;
         }
 		
         // if ($status['stateCode'] == '00') {
@@ -254,10 +256,10 @@ class Api500EasyPayService
                 }
             }
         ksort($arr);
-        $sign = strtoupper(md5(json_encode($arr) . $signKey)); #生成签名
-        if ($sign == $r_sign){
+        $sign = strtoupper(md5($this->util->json_encode($arr) . $signKey)); #生成签名
+        if ($sign == $r_sign) {
             return true;
-            }else{
+        } else {
             return false;
         }
     }

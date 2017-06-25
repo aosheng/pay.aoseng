@@ -49,6 +49,7 @@ class GetTasksToThird implements ShouldQueue
             $this->data['config']['signKey'],
             $this->data['base_id']
         );
+        Log::info('pay status' . print_r($status, true) . ' ' .date('Y-m-d H:i:s'));
         Log::info('end pay' . date('Y-m-d H:i:s'));
     }
 
@@ -60,6 +61,6 @@ class GetTasksToThird implements ShouldQueue
     public function failed()
     {
         // Called when the job is failing...
-        Log::error('GetTasksToThird Job fail' . print_r($this->data, true));
+        Log::error('GetTasksToThird Job fail/n' . print_r($this->data, true));
     }
 }
