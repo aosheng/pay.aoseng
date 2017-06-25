@@ -27,10 +27,10 @@ services:
     volumes:
       - ../database/mysql:/var/lib/mysql/
     environment:
-      MYSQL_USER: localhost
+      MYSQL_USER: payaosheng
       MYSQL_ROOT_PASSWORD: password
       MYSQL_PASSWORD: password
-      MYSQL_DATABASE: db_local
+      MYSQL_DATABASE: db_payaosheng
     restart: always
     networks:
       app_net:

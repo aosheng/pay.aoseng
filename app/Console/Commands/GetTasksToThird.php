@@ -5,7 +5,9 @@ namespace App\Console\Commands;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 
-//use App\Jobs\GetTasksToThird;
+use Log;
+use App\Http\Services\Cache\Api500EasyPayCacheService;
+use App\jobs\GetTasksToThird as GetQrcode;
 
 class GetTasksToThird extends Command
 {
@@ -14,7 +16,7 @@ class GetTasksToThird extends Command
      *
      * @var string
      */
-    protected $signature = 'tothird:GetTasksToThird';
+    protected $signature = 'Tothird:GetTasksToThird';
 
     /**
      * The console command description.
@@ -23,14 +25,19 @@ class GetTasksToThird extends Command
      */
     protected $description = 'Send data to 500EasyPay be get Qrcode';
 
+    protected $Api500EasyPayCacheService;
+    protected $tags;
+    
     /**
      * Create a new command instance.
      *
      * @return void
      */
-    public function __construct()
+    public function __construct(Api500EasyPayCacheService $Api500EasyPayCacheService)
     {
         parent::__construct();
+        $this->tags = 'Api500EasyPay_input';
+        $this->cache_service = $Api500EasyPayCacheService;
     }
 
     /**
@@ -40,12 +47,21 @@ class GetTasksToThird extends Command
      */
     public function handle()
     {
-        $job = (new \App\Jobs\GetTasksToThird())
-                    ->delay(Carbon::now()->addMinutes(1));
+        //todo get redis input data to send order
+        $task_data = $this->cache_service->getCache($this->tags);
+        //dd($task_data);
+        Log::info('get input redis order');
+        foreach ($task_data as $data) {
+            dispatch((new getQrcode($data))
+                ->onQueue('get_qrcode'));
+        }
+        
+        // $job = (new \App\Jobs\GetTasksToThird())
+        //             ->delay(Carbon::now()->addMinutes(1));
 
-        dispatch($job);
+        // dispatch($job);
         //dispatch(new \App\Jobs\GetTasksToThird());
-        sleep(4);
+        //sleep(2);
         echo date("Y-m-d H:i:s")."\n";
     }
 }

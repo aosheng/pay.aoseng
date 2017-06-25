@@ -19,7 +19,8 @@
         "fzaninotto/faker": "~1.4",
         "mockery/mockery": "0.9.*",
         "phpunit/phpunit": "~5.7",
-        "recca0120/laravel-tracy": "^1.7.13"
+        "recca0120/laravel-tracy": "^1.7.13",
+        "squizlabs/php_codesniffer": "^3.0"
     },
     "autoload": {
         "classmap": [

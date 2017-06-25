@@ -21,6 +21,25 @@ class Api500EasyPayController extends BaseController
 
     public function store(Request $request)
     {   
-        $this->payService->send($request->all());              
+        $params['config']['merNo'] = 'QYF201705260107';
+        $params['config']['signKey'] = '2566AE677271D6B88B2476BBF923ED88';
+        $params['config']['encKey'] = 'GiWBZqsJ4GYZ8G8psuvAsTo3';
+        $params['config']['payUrl'] = 'http://47.90.116.117:90/api/pay.action';
+        $params['config']['remitUrl'] = 'http://47.90.116.117:90/api/remit.action';
+
+        $params['pay']['version'] = 'V2.0.0.0';
+        $params['pay']['merNo'] = $params['config']['merNo']; 
+        $params['pay']['netway'] = 'WX';    
+        $params['pay']['random'] = (string) rand(1000,9999);
+        $params['pay']['orderNum'] = date('YmdHis') . rand(1000,9999);
+        $params['pay']['amount'] = '1000';
+        $params['pay']['goodsName'] = '测试支付';
+        $params['pay']['charset'] = 'utf-8';
+        $params['pay']['callBackUrl'] = 'http://localhost/api/Api500EasyPay/pay_callback';
+        $params['pay']['callBackViewUrl'] =  ""; 
+        $params = json_encode($params);
+        $this->payService->send($params); 
+        
+        //$this->payService->send($request->all());              
     }   
 }
