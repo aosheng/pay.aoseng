@@ -124,6 +124,8 @@ return [
 
     'log_level' => env('APP_LOG_LEVEL', 'debug'),
 
+    'log_max_files' => env('APP_LOG_MAX_FILES', '5'),
+
     /*
     |--------------------------------------------------------------------------
     | Autoloaded Service Providers
@@ -171,6 +173,7 @@ return [
         Dingo\Api\Provider\LaravelServiceProvider::class,
         //Barryvdh\LaravelIdeHelper\IdeHelperServiceProvider::class,
         //Frozennode\Administrator\AdministratorServiceProvider::class,
+        Rap2hpoutre\LaravelLogViewer\LaravelLogViewerServiceProvider::class,
         
         /*
          * Application Service Providers...

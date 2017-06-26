@@ -14,7 +14,7 @@ use Illuminate\Http\Request;
 */
 
 // Route::middleware('auth:api')->get('/user', function (Request $request) {
-//     return '123';
+//     //return '456';
 //     return $request->user();
 // });
 
@@ -34,15 +34,14 @@ $api->version('v1', [
     $api->get('/user', function(){
         return '123';
     });
-
     $api->post('Api500EasyPay', [
         'as' => 'Api500EasyPay.index',
         'uses' => 'Api500EasyPayController@index',
     ]);
-
     $api->post('Api500EasyPay/store', [
         'as' => 'Api500EasyPay.store',
         'uses' => 'Api500EasyPayController@store',
     ]);
-
 });
+
+

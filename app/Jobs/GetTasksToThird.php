@@ -8,6 +8,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 
+use Log;
 use App\Http\Services\Cache\Api500EasyPayCacheService;
 use App\Http\Services\Api\V1\Api500EasyPayService;
 
@@ -16,20 +17,18 @@ class GetTasksToThird implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     protected $Api500EasyPayCacheService;
-    protected $tags;
+    protected $data;
 
-     public $tries = 1;
+    public $tries = 3;
 
     /**
      * Create a new job instance.
      *
      * @return void
      */
-    public function __construct()
+    public function __construct($data)
     {
-        //$this->redis = $Redis;
-        //$this->cache_service = $Api500EasyPayCacheService;
-        $this->tags = 'Api500EasyPay_input';
+        $this->data = $data;
     }
 
     /**
@@ -37,21 +36,31 @@ class GetTasksToThird implements ShouldQueue
      *
      * @return void
      */
-    public function handle(Api500EasyPayCacheService $Api500EasyPayCacheService,
-        Api500EasyPayService $Api500EasyPayService)
+    //todo send order to third
+    public function handle(Api500EasyPayService $Api500EasyPayService)
     {
-        $this->cache_service = $Api500EasyPayCacheService;
+        //$this->cache_service = $Api500EasyPayCacheService;
         $this->service = $Api500EasyPayService;
 
-        //dd('123');
-        //dd($this->tags);
-        $task_data = $this->cache_service->getCache($this->tags);
-        //dd($task_data);
-        foreach ($task_data as $base_id => $data) {
-            var_dump($data);
-            //dd([$data['url'], $data['data'], $data['config']['signKey']]);
-            $status = $this->service->pay($data['url'], $data['data'], $data['config']['signKey'], $data['base_id']);
-        }
-       
+        Log::info('start pay' . date('Y-m-d H:i:s'));
+        $status = $this->service->pay(
+            $this->data['url'],
+            $this->data['data'],
+            $this->data['config']['signKey'],
+            $this->data['base_id']
+        );
+        Log::info('pay status' . print_r($status, true) . ' ' .date('Y-m-d H:i:s'));
+        Log::info('end pay' . date('Y-m-d H:i:s'));
+    }
+
+    /**
+     * Handle a job failure.
+     *
+     * @return void
+     */
+    public function failed()
+    {
+        // Called when the job is failing...
+        Log::error('GetTasksToThird Job fail/n' . print_r($this->data, true));
     }
 }

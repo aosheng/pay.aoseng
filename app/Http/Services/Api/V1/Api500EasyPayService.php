@@ -7,6 +7,8 @@ use Jenssegers\Date\Date;
 use Illuminate\Support\Facades\Redis;
 use App\Http\Services\Cache\Api500EasyPayCacheService;
 
+use Log;
+
 class Api500EasyPayService
 {
     use Helpers;
@@ -27,23 +29,6 @@ class Api500EasyPayService
 
     public function send($params)
     {
-        $params['config']['merNo'] = 'QYF201705260107';
-        $params['config']['signKey'] = '2566AE677271D6B88B2476BBF923ED88';
-        $params['config']['encKey'] = 'GiWBZqsJ4GYZ8G8psuvAsTo3';
-        $params['config']['payUrl'] = 'http://47.90.116.117:90/api/pay.action';
-        $params['config']['remitUrl'] = 'http://47.90.116.117:90/api/remit.action';
-
-        $params['pay']['version'] = 'V2.0.0.0';
-        $params['pay']['merNo'] = $params['config']['merNo']; 
-        $params['pay']['netway'] = 'WX';    
-        $params['pay']['random'] = (string) rand(1000,9999);
-        $params['pay']['orderNum'] = date('YmdHis') . rand(1000,9999);
-        $params['pay']['amount'] = '1000';
-        $params['pay']['goodsName'] = '测试支付';
-        $params['pay']['charset'] = 'utf-8';
-        $params['pay']['callBackUrl'] = 'http://localhost/api/Api500EasyPay/pay_callback';
-        $params['pay']['callBackViewUrl'] =  ""; 
-        $params = json_encode($params);
         //dd($_SERVER['HTTPS'] ? 'https' : 'http' . '://' . $_SERVER['HTTP_HOST'] . $_SERVER['PHP_SELF']);
         //dd(json_decode($params));
 
@@ -89,44 +74,56 @@ class Api500EasyPayService
 		self::write_log('提交支付订单：' . $pay['orderNum']);
 
 		$post = array('data' => $data);
-        //dd($post);
-        // into redis
+ 
         // $base_id = uniqid();
         $input_data = ['url' => $config['payUrl'], 'data' => $post, 'config' => $config];
         
-        // Redis::rpush('base_id', $base_id);
-        // $tasks = Redis::lrange('base_id', 0, 20);
-        // Cache::tags(['input_Api500EasyPay'])->put($base_id, $input_data, 20);
+        $base_id = $this->cache_service->setCache('Api500EasyPay_input', $input_data);
 
-        $this->cache_service->setCache('Api500EasyPay_input', $input_data);
-
-
-
+        // to get response qrcode
+        sleep(5);
+        $get_qrcode = self::toGetResponseQrcode('Api500EasyPay_response', 'get_qrcode', $base_id, 5);
+        
+        return  ($get_qrcode) ? $get_qrcode : 'error';
         //$this->pay($config['payUrl'], $post, $config['signKey']);
     }
 
+    public function toGetResponseQrcode($tags, $type, $base_id, $i)
+    {
+        sleep(1);
+        Log::info('start get qrcode' . date('Y-m-d H:i:s'));
+        $qr_code = $this->cache_service->toGetResponseQrcode($tags, $type, $base_id);
+
+        if ($qr_code == null && $i > 0) {
+            $i--;
+            self::toGetResponseQrcode($tags, $type, $base_id, $i);
+        }
+        Log::info('get qrcode' . date('Y-m-d H:i:s'));
+        
+        return $qr_code['qrcodeUrl'];
+    }
+
+
     public function pay($url, $data, $sign_key, $base_id)
     {
-       //dd([$url, $data]);
-       
-        $return = $this->curl_post($url, $data);
-        $status = $this->services_json->decode($return); #将返回json数据转换为数组
-        //self::write_log($return);
-        //dd($status);
-        //var_dump($return);
-        $this->cache_service->setResponseCache('Api500EasyPay', 'response_get_qrcode', $base_id, $status);  
-        $this->cache_service->deleteCache('Api500EasyPay', 'base_id', $base_id);
-        $this->cache_service->deleteTagsCache('Api500EasyPay', 'input', $base_id);
+        //$is_return_data = false;
+        $is_return_data = [];
+        $is_return_data = $this->curl_post($url, $data);
+        $status = $this->services_json->decode($is_return_data); #将返回json数据转换为数组
+        Log::info('pay return' . print_r($status, true));
+        if ($status['stateCode'] !== '00') {
+            //self::write_log('系统错误,错误号：' . $status->stateCode . '错误描述：' . $status->msg);
+            Log::warning('系统错误,错误号：' . $status['stateCode'] . '错误描述：' . $status['msg']);
+            //return $this->response->error('系统错误,错误号：' . $status['stateCode'] . '错误描述：' . $status['msg'], 400);
+            return;
+        }
         
-        // if ($status->stateCode !== '00') {
-        //     self::write_log('系统错误,错误号：' . $status->stateCode . '错误描述：' . $status->msg);
-        //     return $this->response->error('系统错误,错误号：' . $status->stateCode . '错误描述：' . $status->msg, 400);
-        // }
-        
-        // if (!self::is_sign($status, $sign_key)) { #验证返回签名数据
-        //     self::write_log('返回签名验证失败!');
-        //     return $this->response->error('返回签名验证失败!', 403);
-        // }
+        if (!self::is_sign($status, $sign_key)) { #验证返回签名数据
+            //self::write_log('返回签名验证失败!');
+            Log::warning('返回签名验证失败!');
+            //return $this->response->error('返回签名验证失败!', 403);
+            return;
+        }
 		
         // if ($status['stateCode'] == '00') {
         //     $stateCode = $status['stateCode'];
@@ -139,6 +136,14 @@ class Api500EasyPayService
         //     return $this->response->array($status);
         //     //return $this->response->item($status, new Api500EasyPayTransformer);	
         // }
+        if ($status['stateCode'] == '00') {
+            Log::info('get qrcode info' . print_r($status, true));
+            $this->cache_service->setResponseCache('Api500EasyPay', 'response_get_qrcode', $base_id, $status);
+            $this->cache_service->deleteCache('Api500EasyPay_input', 'base_id', $base_id);
+            $this->cache_service->deleteTagsCache('Api500EasyPay', 'input', $base_id);
+        }
+
+        return  $status;
     }
 
     public function pay_callback()
@@ -169,7 +174,7 @@ class Api500EasyPayService
         curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         $tmpInfo = curl_exec($ch);
-        self::write_log($tmpInfo);
+
         if (curl_errno($ch)) {
             return curl_error($ch);
         }
@@ -252,10 +257,10 @@ class Api500EasyPayService
                 }
             }
         ksort($arr);
-        $sign = strtoupper(md5(json_encode($arr) . $signKey)); #生成签名
-        if ($sign == $r_sign){
+        $sign = strtoupper(md5($this->util->json_encode($arr) . $signKey)); #生成签名
+        if ($sign == $r_sign) {
             return true;
-            }else{
+        } else {
             return false;
         }
     }
