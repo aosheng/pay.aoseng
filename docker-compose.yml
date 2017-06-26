@@ -9,7 +9,7 @@ services:
   #  restart: always
   #  networks:
   #    app_net:
-  #      ipv4_address: 172.22.6.10
+  #      ipv4_address: 172.22.8.10
   redis:
     build: ./Dockerfiles/redis
     ports:
@@ -18,7 +18,7 @@ services:
     restart: always
     networks:
       app_net:
-        ipv4_address: 172.22.6.10
+        ipv4_address: 172.22.8.10
   mysql:
     build: ./Dockerfiles/mysql
     ports:
@@ -34,7 +34,7 @@ services:
     restart: always
     networks:
       app_net:
-        ipv4_address: 172.22.6.20
+        ipv4_address: 172.22.8.20
 
   #postgresql:
   #  build: ./Dockerfiles/postgresql
@@ -50,7 +50,7 @@ services:
   #  restart: always
   #  networks:
   #    app_net:
-  #      ipv4_address: 172.22.6.21
+  #      ipv4_address: 172.22.8.21
 
   workspace:
     build: ./Dockerfiles/workspace
@@ -67,7 +67,7 @@ services:
     restart: always
     networks:
       app_net:
-        ipv4_address: 172.22.6.30
+        ipv4_address: 172.22.8.30
 
   # fpm-php55:
   #   build: ./Dockerfiles/fpm-php55
@@ -100,11 +100,11 @@ services:
       - mysql:mysql
       #- postgresql:postgresql
     extra_hosts:
-      - localhost:172.22.6.50
+      - localhost:172.22.8.50
     restart: always
     networks:
       app_net:
-        ipv4_address: 172.22.6.41
+        ipv4_address: 172.22.8.41
 
   nginx:
     build: ./Dockerfiles/nginx
@@ -121,7 +121,7 @@ services:
     restart: always
     networks:
       app_net:
-        ipv4_address: 172.22.6.50
+        ipv4_address: 172.22.8.50
 
 networks:
   app_net:
@@ -131,5 +131,5 @@ networks:
     ipam:
         driver: default
         config:
-        - subnet: 172.22.6.0/24
-          gateway: 172.22.6.1
+        - subnet: 172.22.8.0/24
+          gateway: 172.22.8.1

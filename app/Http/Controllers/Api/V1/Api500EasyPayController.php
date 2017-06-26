@@ -43,4 +43,24 @@ class Api500EasyPayController extends BaseController
         
         //$this->payService->send($request->all());              
     }   
+
+    public function check(Request $request)
+    {
+        $params['config']['merNo'] = 'QYF201705260107';
+        $params['config']['signKey'] = '2566AE677271D6B88B2476BBF923ED88';
+        $params['config']['encKey'] = 'GiWBZqsJ4GYZ8G8psuvAsTo3';
+        $params['config']['payUrl'] = 'http://47.90.116.117:90/api/pay.action';
+        $params['config']['remitUrl'] = 'http://47.90.116.117:90/api/remit.action';
+        
+        $params['pay']['merNo'] = $params['config']['merNo']; 
+        $params['pay']['netway'] = 'WX';    
+        $params['pay']['orderNum'] = '201706261146034961';
+        $params['pay']['amount'] = '1000';
+        $params['pay']['goodsName'] = '测试支付';
+        $params['pay']['payDate'] = '2017-06-26'; 
+        $params['pay']['sign'] = '45782DA8CF84E73B53BBE50DCAF00676';
+        $params = json_encode($params);
+
+        $this->payService->pay_check_status($params);
+    }
 }
