@@ -42,15 +42,15 @@ class GetTasksToThird implements ShouldQueue
         //$this->cache_service = $Api500EasyPayCacheService;
         $this->service = $Api500EasyPayService;
 
-        Log::info('start pay' . date('Y-m-d H:i:s'));
+        Log::info('start pay');
         $status = $this->service->pay(
             $this->data['url'],
             $this->data['data'],
             $this->data['config']['signKey'],
             $this->data['base_id']
         );
-        Log::info('pay status' . print_r($status, true) . ' ' .date('Y-m-d H:i:s'));
-        Log::info('end pay' . date('Y-m-d H:i:s'));
+        Log::info('pay status' . print_r($status, true));
+        Log::info('end pay');
     }
 
     /**

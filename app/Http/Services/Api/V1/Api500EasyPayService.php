@@ -84,7 +84,7 @@ class Api500EasyPayService
         sleep(5);
         $get_qrcode = self::toGetResponseQrcode('Api500EasyPay_response', 'get_qrcode', $base_id, 5);
         
-        return  ($get_qrcode) ? $get_qrcode : 'error';
+        return  (isset($get_qrcode['qrcodeUrl'])) ? $get_qrcode['qrcodeUrl'] : 'error :' . $get_qrcode['stateCode'] . 'msg : ' . $get_qrcode['msg'];
         //$this->pay($config['payUrl'], $post, $config['signKey']);
     }
 
@@ -100,7 +100,7 @@ class Api500EasyPayService
         }
         Log::info('get qrcode' . date('Y-m-d H:i:s'));
         
-        return $qr_code['qrcodeUrl'];
+        return $qr_code;
     }
 
 
@@ -115,14 +115,14 @@ class Api500EasyPayService
             //self::write_log('系统错误,错误号：' . $status->stateCode . '错误描述：' . $status->msg);
             Log::warning('系统错误,错误号：' . $status['stateCode'] . '错误描述：' . $status['msg']);
             //return $this->response->error('系统错误,错误号：' . $status['stateCode'] . '错误描述：' . $status['msg'], 400);
-            return;
+            return $status;
         }
         
         if (!self::is_sign($status, $sign_key)) { #验证返回签名数据
             //self::write_log('返回签名验证失败!');
             Log::warning('返回签名验证失败!');
             //return $this->response->error('返回签名验证失败!', 403);
-            return;
+            return $status;
         }
 		
         // if ($status['stateCode'] == '00') {
@@ -149,6 +149,11 @@ class Api500EasyPayService
     public function pay_callback()
     {
 
+    }
+
+    public function pay_check_status()
+    {
+        // TODO: 檢查data config sing 再送出查詢
     }
 
     public function remit()

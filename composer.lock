@@ -4,8 +4,13 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
+<<<<<<< HEAD
     "hash": "54991d2fc3fa8aa15485bb10aa516621",
     "content-hash": "1aa312de1eb4560900cfcb7d7f07a93b",
+=======
+    "hash": "5c49cfe53fbd66ce436aa24a92b292c8",
+    "content-hash": "a15da1c27cb1e83b7888d16611d174c2",
+>>>>>>> 3bd0ecfa0f9a5eccc065a2f345bf350612af5091
     "packages": [
         {
             "name": "barryvdh/laravel-ide-helper",
@@ -1562,16 +1567,16 @@
         },
         {
             "name": "psy/psysh",
-            "version": "v0.8.7",
+            "version": "v0.8.8",
             "source": {
                 "type": "git",
                 "url": "https://github.com/bobthecow/psysh.git",
-                "reference": "be969b9dc89dcaefdb9a3117fa91fa38bca19f50"
+                "reference": "fe65c30cbc55c71e61ba3a38b5a581149be31b8e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/bobthecow/psysh/zipball/be969b9dc89dcaefdb9a3117fa91fa38bca19f50",
-                "reference": "be969b9dc89dcaefdb9a3117fa91fa38bca19f50",
+                "url": "https://api.github.com/repos/bobthecow/psysh/zipball/fe65c30cbc55c71e61ba3a38b5a581149be31b8e",
+                "reference": "fe65c30cbc55c71e61ba3a38b5a581149be31b8e",
                 "shasum": ""
             },
             "require": {
@@ -1631,7 +1636,11 @@
                 "interactive",
                 "shell"
             ],
+<<<<<<< HEAD
             "time": "2017-06-20 12:51:31"
+=======
+            "time": "2017-06-24 06:16:19"
+>>>>>>> 3bd0ecfa0f9a5eccc065a2f345bf350612af5091
         },
         {
             "name": "ramsey/uuid",
@@ -2916,6 +2925,7 @@
                 "test"
             ],
             "time": "2015-05-11 14:41:42"
+<<<<<<< HEAD
         },
         {
             "name": "laracasts/generators",
@@ -2960,6 +2970,8 @@
                 "laravel"
             ],
             "time": "2015-12-31 18:44:32"
+=======
+>>>>>>> 3bd0ecfa0f9a5eccc065a2f345bf350612af5091
         },
         {
             "name": "mockery/mockery",
