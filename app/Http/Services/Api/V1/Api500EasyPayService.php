@@ -42,6 +42,7 @@ class Api500EasyPayService
 	    );
         
         if (!self::config_parames_check($config)) {
+            Log::error('config 配置錯誤');
             return $this->response->error('Config is an error.', 400);
         }
 
@@ -70,8 +71,8 @@ class Api500EasyPayService
 		$pay['sign'] = strtoupper($sign); #设置签名
 		$data = $this->util->json_encode($pay); #将数组转换为JSON格式
 
-		self::write_log('通知地址：' . $pay['callBackUrl']);
-		self::write_log('提交支付订单：' . $pay['orderNum']);
+		Log::info('通知地址：' . $pay['callBackUrl']);
+		Log::info('提交支付订单：' . $pay['orderNum']);
 
 		$post = array('data' => $data);
  
@@ -110,7 +111,7 @@ class Api500EasyPayService
         $is_return_data = [];
         $is_return_data = $this->curl_post($url, $data);
         $status = $this->services_json->decode($is_return_data); #将返回json数据转换为数组
-        Log::info('pay return' . print_r($status, true));
+        Log::info('pay status' . print_r($status, true));
         if ($status['stateCode'] !== '00') {
             //self::write_log('系统错误,错误号：' . $status->stateCode . '错误描述：' . $status->msg);
             Log::warning('系统错误,错误号：' . $status['stateCode'] . '错误描述：' . $status['msg']);
@@ -154,6 +155,28 @@ class Api500EasyPayService
     public function pay_check_status()
     {
         // TODO: 檢查data config sing 再送出查詢
+        $params = json_decode($params);
+        $config = array(
+            'merNo' => $params->config->merNo,         #商户号 'qyf201705200001'	
+            'signKey' => $params->config->signKey,      #MD5密钥 'AiYLumB03Fingt3R3ULdvFzS'
+            'encKey' => $params->config->encKey,        #3DES密钥 'DNSow6CK0MIUUEJrNIziQ1Pm'
+            'payUrl' => $params->config->payUrl,        #支付宝或微信地址 'http://47.90.116.117:90/api/pay.action'
+            'remitUrl' => $params->config->remitUrl,    #代付地址 'http://47.90.116.117:90/api/remit.action'
+	    );
+        
+        if (!self::config_parames_check($config)) {
+            Log::error('config 配置錯誤');
+            return $this->response->error('Config is an error.', 400);
+        }
+
+        $pay = array();
+		$pay['merNo'] = $config['merNo']; #商户号
+		$pay['netway'] = $params->pay->netway;  #WX 或者 ZFB
+		$pay['orderNum'] = $params->pay->orderNum;  #商户订单号
+		$pay['amount'] = $params->pay->amount;  #默认分为单位 转换成元需要 * 100   必须是文本型
+		$pay['goodsName'] = $params->pay->goodsName;  #商品名称
+		$pay['charset'] = $params->pay->charset;  # 系统编码
+
     }
 
     public function remit()
@@ -191,27 +214,27 @@ class Api500EasyPayService
     private function config_parames_check($config)
     {
 		if ($config['merNo'] == ''){
-			self::write_log('请配置商户号.. config.php。');
+			Log::error('请配置商户号.. config.php。');
 			return false;
 		}
 		
 		if ($config['signKey'] == ''){
-			self::write_log('请配置MD5密钥.. config.php。');
+			Log::error('请配置MD5密钥.. config.php。');
 			return false;
 		}
 		
 		if ($config['encKey'] == ''){
-			self::write_log('请配置3DES密钥.. config.php。');
+			Log::error('请配置3DES密钥.. config.php。');
 			return false;
 		}
 		
 		if ($config['payUrl'] == ''){
-			self::write_log('请配置支付接口.. config.php。');
+			Log::error('请配置支付接口.. config.php。');
 			return false;
 		}
 		
 		if ($config['remitUrl'] == ''){
-			self::write_log('请配置代付接口.. config.php。');
+			Log::error('请配置代付接口.. config.php。');
 			return false;
 		}
 
@@ -220,43 +243,43 @@ class Api500EasyPayService
     
     private function pay_parames_check($parames)
     {
-        if (empty($parames['version'])) {
-            self::write_log('请配置版本号');
-			return false;
-        }
+        // if (empty($parames['version'])) {
+        //     self::write_log('请配置版本号');
+		// 	return false;
+        // }
 
        if (!in_array($parames['netway'], $this->third)) {
-            self::write_log('支付选择不正确');
+            Log::error('支付选择不正确');
 			return false;
        }
        
         if ($parames['amount'] < 0) {
-            self::write_log('金额不正确');
+            Log::error('金额不正确');
 			return false;
         }
 
         if (empty($parames['goodsName'])) {
-            self::write_log('请设定商店名');
+            Log::error('请设定商店名');
 			return false;
         }
 
         if ($parames['charset'] != 'utf-8') {
-            self::write_log('请设定utf-8');
+            Log::error('请设定utf-8');
 			return false;
         }
 
         if (empty($parames['callBackUrl'])) {
-            self::write_log('请设定回调网址');
+            Log::error('请设定回调网址');
 			return false;
         }
 
-        return true;	
+        return true;
     }
     
     private function is_sign($row, $signKey) { #效验服务器返回数据
         $r_sign = $row['sign']; #保留签名数据
         $arr = array();
-            foreach ($row as $key=>$v) {
+            foreach ($row as $key => $v) {
                 if ($key !== 'sign') { #删除签名
                     $arr[$key] = $v;
                 }
