@@ -32,7 +32,7 @@ class Api500EasyPayController extends BaseController
         $params['pay']['netway'] = 'WX';    
         $params['pay']['random'] = (string) rand(1000,9999);
         $params['pay']['orderNum'] = date('YmdHis') . rand(1000,9999);
-        $params['pay']['amount'] = '1000';
+        $params['pay']['amount'] = '100';
         $params['pay']['goodsName'] = '测试支付';
         $params['pay']['charset'] = 'utf-8';
         $params['pay']['callBackUrl'] = 'http://localhost/api/Api500EasyPay/pay_callback';
@@ -62,5 +62,9 @@ class Api500EasyPayController extends BaseController
         $params = json_encode($params);
 
         $this->payService->pay_check_status($params);
+    }
+
+    public function call_back(Request $request){
+        $this->payService->pay_call_back($request);
     }
 }

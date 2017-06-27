@@ -42,6 +42,14 @@ $api->version('v1', [
         'as' => 'Api500EasyPay.store',
         'uses' => 'Api500EasyPayController@store',
     ]);
+    $api->post('Api500EasyPay/check', [
+        'as' => 'Api500EasyPay.check',
+        'uses' => 'Api500EasyPayController@check',
+    ]);
+    $api->post('Api500EasyPay/call_back', [
+        'as' => 'Api500EasyPay.call_back',
+        'uses' => 'Api500EasyPayController@call_back',
+    ]);
 });
 
 

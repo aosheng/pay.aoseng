@@ -147,12 +147,31 @@ class Api500EasyPayService
         return  $status;
     }
 
-    public function pay_callback()
+    public function pay_call_back($request)
     {
+        $sign_key = '2566AE677271D6B88B2476BBF923ED88';
+        
+        $params['merNo'] = $request['merNo'];
+        $params['netway'] = $request['netway'];
+        $params['orderNum'] = $request['orderNum'];
+        $params['amount'] = $request['amount'];
+        $params['goodsName'] = $request['goodsName'];
+        $params['payResult'] = $request['payResult'];
+        $params['payDate'] = $request['payDate'];
+        $params['sign'] = $request['sign']; 
+
+        if (!self::is_sign($request, $sign_key)) { #验证返回签名数据
+            //self::write_log('返回签名验证失败!');
+            Log::warning('返回签名验证失败!');
+            //return $this->response->error('返回签名验证失败!', 403);
+            return $request;
+        }
+
+        return $request;
 
     }
 
-    public function pay_check_status()
+    public function pay_check_status($params)
     {
         // TODO: 檢查data config sing 再送出查詢
         $params = json_decode($params);
@@ -175,7 +194,25 @@ class Api500EasyPayService
 		$pay['orderNum'] = $params->pay->orderNum;  #商户订单号
 		$pay['amount'] = $params->pay->amount;  #默认分为单位 转换成元需要 * 100   必须是文本型
 		$pay['goodsName'] = $params->pay->goodsName;  #商品名称
-		$pay['charset'] = $params->pay->charset;  # 系统编码
+		$pay['payDate'] = $params->pay->payDate;  # 交易日期（格式：yyyy-MM-dd）
+
+        ksort($pay); #排列数组 将数组已a-z排序
+        
+		$sign = md5($this->util->json_encode($pay) . $config['signKey']); #生成签名
+
+        //dd([ $pay, $config['signKey'] ]);
+
+		$pay['sign'] = strtoupper($sign); #设置签名
+		$data = $this->util->json_encode($pay); #将数组转换为JSON格式
+
+		Log::info('查詢支付订单：' . $pay['orderNum']);
+
+		$post = array('data' => $data);
+        // 查帳接口url 未確定?
+        $is_return_data = $this->curl_post($config['payUrl'], $data);
+        $status = $this->services_json->decode($is_return_data); #将返回json数据转换为数组
+        Log::info('query status' . print_r($status, true));
+
 
     }
 
