@@ -18,7 +18,7 @@
     },
     "require-dev": {
         "fzaninotto/faker": "~1.4",
-        "laracasts/generators": "^1.1",
+        "laracasts/generators": "dev-master as 1.1.4",
         "mockery/mockery": "0.9.*",
         "phpunit/phpunit": "~5.7",
         "recca0120/laravel-tracy": "^1.7.13",
