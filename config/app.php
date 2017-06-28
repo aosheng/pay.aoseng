@@ -173,7 +173,7 @@ return [
         //Barryvdh\LaravelIdeHelper\IdeHelperServiceProvider::class,
         //Frozennode\Administrator\AdministratorServiceProvider::class,
         Rap2hpoutre\LaravelLogViewer\LaravelLogViewerServiceProvider::class,
-        Recca0120\LaravelTracy\LaravelTracyServiceProvider::class,
+        //Recca0120\LaravelTracy\LaravelTracyServiceProvider::class,
         
         /*
          * Application Service Providers...
