@@ -169,11 +169,11 @@ return [
          * Package Service Providers...
          */
         Laravel\Tinker\TinkerServiceProvider::class,
-        Recca0120\LaravelTracy\LaravelTracyServiceProvider::class,
         Dingo\Api\Provider\LaravelServiceProvider::class,
         //Barryvdh\LaravelIdeHelper\IdeHelperServiceProvider::class,
         //Frozennode\Administrator\AdministratorServiceProvider::class,
         Rap2hpoutre\LaravelLogViewer\LaravelLogViewerServiceProvider::class,
+        Recca0120\LaravelTracy\LaravelTracyServiceProvider::class,
         
         /*
          * Application Service Providers...
