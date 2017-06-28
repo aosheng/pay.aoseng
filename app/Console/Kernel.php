@@ -26,7 +26,7 @@ class Kernel extends ConsoleKernel
     {
         // $schedule->command('inspire')
         //          ->hourly();
-        if (env('APP_ENV') == 'product') {
+        if (env('APP_ENV') == 'production') {
             $schedule->command('Tothird:GetTasksToThird')
                 ->cron('0 * * * *');
         }
