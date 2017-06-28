@@ -50,12 +50,16 @@ class GetTasksToThird extends Command
         //todo get redis input data to send order
         $task_data = $this->cache_service->getCache($this->tags);
         //dd($task_data);
+        Log::info('Tothird:GetTasksToThird start: ' . app_path() . 'LINE:' . __LINE__);
+        if (!$task_data) {
+            return false;
+        }
         Log::info('get input redis order : ' . app_path() . 'LINE:' . __LINE__);
         foreach ($task_data as $data) {
             dispatch((new getQrcode($data))
                 ->onQueue('get_qrcode'));
         }
-        
+
         // $job = (new \App\Jobs\GetTasksToThird())
         //             ->delay(Carbon::now()->addMinutes(1));
 
