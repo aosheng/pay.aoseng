@@ -42,7 +42,7 @@ class Api500EasyPayService
 	    );
         
         if (!self::config_parames_check($config)) {
-            Log::error('config 配置錯誤');
+            Log::error('config 配置錯誤' . base_path() . 'LINE:' . __LINE__);
             return $this->response->error('Config is an error.', 400);
         }
 
@@ -71,8 +71,8 @@ class Api500EasyPayService
 		$pay['sign'] = strtoupper($sign); #设置签名
 		$data = $this->util->json_encode($pay); #将数组转换为JSON格式
 
-		Log::info('通知地址：' . $pay['callBackUrl']);
-		Log::info('提交支付订单：' . $pay['orderNum']);
+		Log::info('通知地址：' . $pay['callBackUrl'] . base_path() . 'LINE:' . __LINE__);
+		Log::info('提交支付订单：' . $pay['orderNum'] . base_path() . 'LINE:' . __LINE__);
 
 		$post = array('data' => $data);
  
@@ -85,7 +85,7 @@ class Api500EasyPayService
         $get_qrcode['stateCode'] = '9999';
         $get_qrcode['msg'] = '忙线中, 请稍后再试';
         sleep(5);
-        $get_qrcode = self::toGetResponseQrcode('Api500EasyPay_response', 'get_qrcode', $base_id, 5);
+        $get_qrcode = self::toGetResponseQrcode('Api500EasyPay_response', 'get_qrcode', $base_id, 8);
         
         return  (isset($get_qrcode['qrcodeUrl'])) ? $get_qrcode['qrcodeUrl'] : 'error :' . $get_qrcode['stateCode'] . 'msg : ' . $get_qrcode['msg'];
         //$this->pay($config['payUrl'], $post, $config['signKey']);
@@ -94,14 +94,14 @@ class Api500EasyPayService
     public function toGetResponseQrcode($tags, $type, $base_id, $i)
     {
         sleep(1);
-        Log::info('start get qrcode' . date('Y-m-d H:i:s'));
+        Log::info('start get qrcode : ' . base_path() . 'LINE:' . __LINE__);
         $qr_code = $this->cache_service->toGetResponseQrcode($tags, $type, $base_id);
 
         if ($qr_code == null && $i > 0) {
             $i--;
             self::toGetResponseQrcode($tags, $type, $base_id, $i);
         }
-        Log::info('get qrcode' . date('Y-m-d H:i:s'));
+        Log::info('get qrcode' . base_path() . 'LINE:' . __LINE__);
         
         return $qr_code;
     }
@@ -113,17 +113,17 @@ class Api500EasyPayService
         $is_return_data = [];
         $is_return_data = $this->curl_post($url, $data);
         $status = $this->services_json->decode($is_return_data); #将返回json数据转换为数组
-        Log::info('pay status' . print_r($status, true));
+        Log::info('pay status' . print_r($status, true) . base_path() . 'LINE:' . __LINE__);
         if ($status['stateCode'] !== '00') {
             //self::write_log('系统错误,错误号：' . $status->stateCode . '错误描述：' . $status->msg);
-            Log::warning('系统错误,错误号：' . $status['stateCode'] . '错误描述：' . $status['msg']);
+            Log::warning('系统错误,错误号：' . $status['stateCode'] . '错误描述：' . $status['msg'] . base_path() . 'LINE:' . __LINE__);
             //return $this->response->error('系统错误,错误号：' . $status['stateCode'] . '错误描述：' . $status['msg'], 400);
             return $status;
         }
         
         if (!self::is_sign($status, $sign_key)) { #验证返回签名数据
             //self::write_log('返回签名验证失败!');
-            Log::warning('返回签名验证失败!');
+            Log::warning('返回签名验证失败!' . base_path() . 'LINE:' . __LINE__);
             //return $this->response->error('返回签名验证失败!', 403);
             return $status;
         }
@@ -140,7 +140,7 @@ class Api500EasyPayService
         //     //return $this->response->item($status, new Api500EasyPayTransformer);	
         // }
         if ($status['stateCode'] == '00') {
-            Log::info('get qrcode info' . print_r($status, true));
+            Log::info('get qrcode info' . print_r($status, true) . base_path() . 'LINE:' . __LINE__);
             $this->cache_service->setResponseCache('Api500EasyPay', 'response_get_qrcode', $base_id, $status);
             $this->cache_service->deleteCache('Api500EasyPay_input', 'base_id', $base_id);
             $this->cache_service->deleteTagsCache('Api500EasyPay', 'input', $base_id);
@@ -169,7 +169,7 @@ class Api500EasyPayService
 
         if (!self::is_sign($call_back, $sign_key)) { #验证返回签名数据
             //self::write_log('返回签名验证失败!');
-            Log::warning('返回签名验证失败!');
+            Log::warning('返回签名验证失败!' . base_path() . 'LINE:' . __LINE__);
             //return $this->response->error('返回签名验证失败!', 403);
             dd($call_back);
             //储存错误
