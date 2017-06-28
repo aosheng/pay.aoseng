@@ -42,15 +42,15 @@ class GetTasksToThird implements ShouldQueue
         //$this->cache_service = $Api500EasyPayCacheService;
         $this->service = $Api500EasyPayService;
 
-        Log::info('start pay : ' . base_path() . 'LINE:' . __LINE__);
+        Log::info('start pay : ' . app_path() . 'LINE:' . __LINE__);
         $status = $this->service->pay(
             $this->data['url'],
             $this->data['data'],
             $this->data['config']['signKey'],
             $this->data['base_id']
         );
-        Log::info('pay status : ' . print_r($status, true) . base_path() . 'LINE:' . __LINE__);
-        Log::info('end pay : ' . base_path() . 'LINE"' . __LINE__);
+        Log::info('pay status : ' . print_r($status, true) . app_path() . 'LINE:' . __LINE__);
+        Log::info('end pay : ' . app_path() . 'LINE"' . __LINE__);
     }
 
     /**
@@ -61,6 +61,6 @@ class GetTasksToThird implements ShouldQueue
     public function failed()
     {
         // Called when the job is failing...
-        Log::error('GetTasksToThird Job fail/n' . print_r($this->data, true) . base_path() . 'LINE:' . __LINE__);
+        Log::error('GetTasksToThird Job fail/n' . print_r($this->data, true) . app_path() . 'LINE:' . __LINE__);
     }
 }

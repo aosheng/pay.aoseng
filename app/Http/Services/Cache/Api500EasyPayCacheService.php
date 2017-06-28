@@ -41,7 +41,7 @@ class Api500EasyPayCacheService
                 ->get($task_base_id);
             
             if (!$get_task) {
-                Log::warning('redis get warning :' . '['. $tags . '] : ' . 'base_id = ' . $task_base_id . base_path() . 'LINE:' . __LINE__);
+                Log::warning('redis get warning :' . '['. $tags . '] : ' . 'base_id = ' . $task_base_id . app_path() . 'LINE:' . __LINE__);
                 continue;
             }
 
@@ -51,7 +51,7 @@ class Api500EasyPayCacheService
             array_push($return_data, $task_data);
         }
 
-        Log::info('getCache_data : ' . print_r($return_data, true) . base_path() . 'LINE:' . __LINE__);
+        Log::info('getCache_data : ' . print_r($return_data, true) . app_path() . 'LINE:' . __LINE__);
 
         return $return_data;
     }
@@ -66,7 +66,7 @@ class Api500EasyPayCacheService
         
         Log::info('setResponseCache : ['. $tags . '_' . $type .'],
             base_id = '. $base_id . ',
-            data = ' . print_r($data, true) . base_path() . 'LINE:' . __LINE__);
+            data = ' . print_r($data, true) . app_path() . 'LINE:' . __LINE__);
 
     }
 
@@ -81,7 +81,7 @@ class Api500EasyPayCacheService
     {
         Redis::lpop($tags . '_' . $type);
         
-        Log::info('delete list [' . $tags . '_' . $type .'] base_id= ' . $base_id . base_path() . 'LINE:' . __LINE__);
+        Log::info('delete list [' . $tags . '_' . $type .'] base_id= ' . $base_id . app_path() . 'LINE:' . __LINE__);
     }
 
     public function deleteTagsCache($tags, $type, $base_id)
@@ -90,6 +90,6 @@ class Api500EasyPayCacheService
             ->tags([$tags. '_' . $type])
             ->forget($base_id);
         
-        Log::info('forget [' . $tags . '_' . $type .'] base_id= ' . $base_id . base_path() . 'LINE:' . __LINE__);
+        Log::info('forget [' . $tags . '_' . $type .'] base_id= ' . $base_id . app_path() . 'LINE:' . __LINE__);
     }
 }
