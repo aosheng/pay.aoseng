@@ -41,11 +41,37 @@ class SendCallBackToAdmin implements ShouldQueue
     {
         $this->cache_service = $Api500EasyPayCacheService;
         //$this->service = $Api500EasyPayService;
-        //dd([$this->base_id, $this->call_back_data]);
+
+        // 確認是否已發過
+        $check_call_back = $this->cache_service->checkCallBackCache('Api500EasyPay', 'save_call_back', $this->call_back_data['merNo'], $this->call_back_data['orderNum']);
+        
+        if ($check_call_back) {
+            Log::warning('# call_back saved #'
+                . '[Api500EasyPay_save_call_back]'
+                . ' ,merNo : ' . $this->call_back_data['merNo']
+                . ' ,orderNum : ' . $this->call_back_data['orderNum']
+                . ' ,' . __FILE__ . 'LINE:' . __LINE__
+            );
+            return false;
+        }
+
         $this->cache_service->saveCallBackCache('Api500EasyPay', 'save_call_back', $this->base_id, $this->call_back_data);
         Log::info('start save_call_back cache : ' 
             . 'base_id = ' . $this->base_id
             . 'call_back_data = ' . print_r($this->call_back_data, true)
-            . __FILE__ . 'LINE:' . __LINE__);
+            . __FILE__ . 'LINE:' . __LINE__
+        );
+
+        // TODO: 通知後台更新
+    }
+
+    public function failed()
+    {
+        // Called when the job is failing...
+        Log::error('# SendCallBackToAdmin Job fail #' 
+            . ' ,base_id = ' . $this->base_id
+            . ' ,call_back_data = ' . print_r($this->call_back_data, true)
+            . ' ,' .__FILE__ . 'LINE:' . __LINE__
+        );
     }
 }

@@ -157,7 +157,7 @@ class Api500EasyPayService
         $params = json_decode($params);
         // 写入redis reponse 
 
-        $base_id = $this->cache_service->getCallBackCache('Api500EasyPay', 'call_back_wait', $params->merNo, $params->orderNum);
+        $base_id = $this->cache_service->getCallBackWaitCache('Api500EasyPay', 'call_back_wait', $params->merNo, $params->orderNum);
 
         // 取send的資料 用來取sing key
         $send_data = $this->cache_service->getSendCache('Api500EasyPay', 'send', $base_id);
@@ -187,7 +187,7 @@ class Api500EasyPayService
         }
         $call_back['amount'] = (int)$call_back['amount'] / 100;
 
-        var_dump($call_back);
+        //var_dump($call_back);
         //dd('success');
         // 第三方call back 訊息存入redis , 發通知給後台接口
         dispatch((new SendCallBackToAdmin($base_id, $call_back))

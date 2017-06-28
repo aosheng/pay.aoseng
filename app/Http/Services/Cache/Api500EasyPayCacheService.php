@@ -122,20 +122,30 @@ class Api500EasyPayCacheService
         
         Cache::store('redis')
             ->tags([$tags . '_' . $type])
-            ->forever($data['merNo'] . '_' . $data['orderNum'], $base_id);
+            ->forever($data['merNo'] . '_' . $data['orderNum'], ['base_id' => $base_id, 'data' => $data]);
+        Log::info('save call_back success : ['
+            . $tags . '_' . $type . '] :'
+            . $data['merNo'] . '_' . $data['orderNum']
+            . 'base_id' . $base_id
+            . __FILE__ . 'LINE:' . __LINE__);
     }
 
-    public function getCallBackCache($tags, $type, $merNo, $orderNum)
+    public function getCallBackWaitCache($tags, $type, $merNo, $orderNum)
     {
         // 取call back 資料
         //dd([$tags, $type, $merNo, $orderNum]);
         return Cache::store('redis')->tags([$tags . '_' . $type])->get($merNo . '_' . $orderNum);
     }
 
+    public function checkCallBackCache($tags, $type, $merNo, $orderNum)
+    {
+        return Cache::store('redis')->tags([$tags . '_' . $type])->get($merNo . '_' . $orderNum);
+    }
+
     public function getSendCache($tags, $type, $base_id)
     {
         return Cache::store('redis')->tags([$tags . '_' . $type])->get($base_id);
-    } 
+    }
 
     public function toGetResponseQrcode($tags, $type, $base_id)
     {
