@@ -35,7 +35,7 @@ class Api500EasyPayController extends BaseController
         $params['pay']['amount'] = '100';
         $params['pay']['goodsName'] = '测试支付';
         $params['pay']['charset'] = 'utf-8';
-        $params['pay']['callBackUrl'] = 'http://localhost/api/Api500EasyPay/pay_callback';
+        $params['pay']['callBackUrl'] = 'http://' . $_SERVER['HTTP_HOST']. '/api/Api500EasyPay/pay_callback';
         $params['pay']['callBackViewUrl'] =  "";
         $params = json_encode($params);
         
