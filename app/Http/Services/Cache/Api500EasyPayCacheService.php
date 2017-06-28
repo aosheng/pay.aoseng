@@ -26,6 +26,11 @@ class Api500EasyPayCacheService
             ->tags([$tags])
             ->add($base_id, $data, self::SURVIVAL_TIME);
         
+        Log::info('setCache : '  . '['. $tags . '] : ' 
+            . 'base_id = ' . $base_id 
+            . 'data = ' . print_r($data, true) 
+            . __FILE__ . 'LINE:' . __LINE__);
+
         return $base_id;
     }
 
@@ -60,6 +65,19 @@ class Api500EasyPayCacheService
         return $return_data;
     }
 
+    public function setSendCache($tags, $type, $base_id, $data)
+    {
+        
+        Redis::rpush($tags . '_' . $type, $base_id);
+        Cache::store('redis')
+            ->tags([$tags . '_' . $type])
+            ->add($base_id, $data, self::SURVIVAL_TIME);
+        
+        Log::info('setSendCache : ['. $tags . '_' . $type .'],
+            base_id = '. $base_id . ',
+            data = ' . print_r($data, true) . __FILE__ . 'LINE:' . __LINE__);
+    }
+    
     public function setResponseCache($tags, $type, $base_id, $data)
     {
         
@@ -72,7 +90,52 @@ class Api500EasyPayCacheService
             base_id = '. $base_id . ',
             data = ' . print_r($data, true) . __FILE__ . 'LINE:' . __LINE__);
 
+        self::setCallBackWaitCache($tags, 'call_back_wait', $base_id, $data);
+        Log::info('setCallBackWaitCache : ['. $tags . '_call_back_wait]' . __FILE__ . 'LINE:' . __LINE__);
+
     }
+
+    public function setCallBackWaitCache($tags, $type, $base_id, $data)
+    {
+        // $data['merNO']
+        // $data['orderNum']
+        if (!$data) {
+            return false;
+        }
+        Redis::rpush($tags . '_' . $type, $data['merNo'] . '_' . $data['orderNum']);
+        
+        Cache::store('redis')
+            ->tags([$tags . '_' . $type])
+            ->add($data['merNo'] . '_' . $data['orderNum'], $base_id, 180);
+
+
+        // 取call back 資料
+        Log::info(Cache::store('redis')->tags([$tags . '_' . $type])->get($data['merNo'] . '_' . $data['orderNum']));
+        // 取send的資料 用來取sing key
+        Log::info('--->' . print_r(Cache::store('redis')->tags(['Api500EasyPay_send'])->get('Api500EasyPay_input_59536120bc1cf'), true));
+    }
+
+    public function saveCallBackCache($tags, $type, $base_id, $data)
+    {
+        //dd([$tags, $type, $base_id, $data]);
+        Redis::rpush($tags . '_' . $type, $data['merNo'] . '_' . $data['orderNum']);
+        
+        Cache::store('redis')
+            ->tags([$tags . '_' . $type])
+            ->forever($data['merNo'] . '_' . $data['orderNum'], $base_id);
+    }
+
+    public function getCallBackCache($tags, $type, $merNo, $orderNum)
+    {
+        // 取call back 資料
+        //dd([$tags, $type, $merNo, $orderNum]);
+        return Cache::store('redis')->tags([$tags . '_' . $type])->get($merNo . '_' . $orderNum);
+    }
+
+    public function getSendCache($tags, $type, $base_id)
+    {
+        return Cache::store('redis')->tags([$tags . '_' . $type])->get($base_id);
+    } 
 
     public function toGetResponseQrcode($tags, $type, $base_id)
     {

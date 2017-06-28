@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Redis;
 use App\Http\Services\Cache\Api500EasyPayCacheService;
 
 use Log;
+use App\jobs\SendCallBackToAdmin;
 
 class Api500EasyPayService
 {
@@ -144,8 +145,8 @@ class Api500EasyPayService
         if ($status['stateCode'] == '00') {
             Log::info('get qrcode info' . print_r($status, true) . __FILE__ . 'LINE:' . __LINE__);
             $this->cache_service->setResponseCache('Api500EasyPay', 'response_get_qrcode', $base_id, $status);
-            $this->cache_service->deleteCache('Api500EasyPay_input', 'base_id', $base_id);
-            $this->cache_service->deleteTagsCache('Api500EasyPay', 'input', $base_id);
+            // $this->cache_service->deleteCache('Api500EasyPay_input', 'base_id', $base_id);
+            // $this->cache_service->deleteTagsCache('Api500EasyPay', 'input', $base_id);
         }
 
         return  $status;
@@ -155,8 +156,16 @@ class Api500EasyPayService
     {
         $params = json_decode($params);
         // 写入redis reponse 
-        
-        $sign_key = '2566AE677271D6B88B2476BBF923ED88';
+
+        $base_id = $this->cache_service->getCallBackCache('Api500EasyPay', 'call_back_wait', $params->merNo, $params->orderNum);
+
+        // 取send的資料 用來取sing key
+        $send_data = $this->cache_service->getSendCache('Api500EasyPay', 'send', $base_id);
+        //Cache::store('redis')->tags(['Api500EasyPay_send'])->get('Api500EasyPay_input_59536120bc1cf');
+   
+        $sign_key = $send_data['config']['signKey'];
+        //dd($sign_key);
+        //$sign_key = '2566AE677271D6B88B2476BBF923ED88';
         
         $call_back['merNo'] = $params->merNo;
         $call_back['netway'] = $params->netway;
@@ -171,16 +180,19 @@ class Api500EasyPayService
 
         if (!self::is_sign($call_back, $sign_key)) { #验证返回签名数据
             //self::write_log('返回签名验证失败!');
-            Log::warning('返回签名验证失败!' . __FILE__ . 'LINE:' . __LINE__);
+            Log::warning('返回签名验证失败!' . print_r($call_back, true) . __FILE__ . 'LINE:' . __LINE__);
             //return $this->response->error('返回签名验证失败!', 403);
-            dd($call_back);
             //储存错误
             return false;
         }
+        $call_back['amount'] = (int)$call_back['amount'] / 100;
 
+        var_dump($call_back);
+        //dd('success');
+        // 第三方call back 訊息存入redis , 發通知給後台接口
+        dispatch((new SendCallBackToAdmin($base_id, $call_back))
+            ->onQueue('send_call_back_to_admin'));
         dd('success');
-
-        // 啟動任務 儲存call_back 進Redis, 回傳給 後台接口(找joy 拿)
 
         return $request;
 

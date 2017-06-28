@@ -16,6 +16,7 @@ class GetTasksToThird implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
+    protected $Api500EasyPayService;
     protected $Api500EasyPayCacheService;
     protected $data;
 
@@ -37,10 +38,16 @@ class GetTasksToThird implements ShouldQueue
      * @return void
      */
     //todo send order to third
-    public function handle(Api500EasyPayService $Api500EasyPayService)
+    public function handle(Api500EasyPayService $Api500EasyPayService, Api500EasyPayCacheService $Api500EasyPayCacheService)
     {
-        //$this->cache_service = $Api500EasyPayCacheService;
+        $this->cache_service = $Api500EasyPayCacheService;
         $this->service = $Api500EasyPayService;
+        
+        $this->cache_service->setSendCache('Api500EasyPay', 'send', $this->data['base_id'], $this->data);
+        Log::info('start send cache : ' 
+            . 'base_id = ' . $this->data['base_id']
+            . 'data = ' . print_r($this->data, true)
+            . __FILE__ . 'LINE:' . __LINE__);
 
         Log::info('start pay : ' . __FILE__ . 'LINE:' . __LINE__);
         $status = $this->service->pay(
