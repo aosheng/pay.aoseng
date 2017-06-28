@@ -82,11 +82,13 @@ class Api500EasyPayService
         $base_id = $this->cache_service->setCache('Api500EasyPay_input', $input_data);
 
         // to get response qrcode
-        $get_qrcode['stateCode'] = '9999';
-        $get_qrcode['msg'] = '忙线中, 请稍后再试';
         sleep(5);
         $get_qrcode = self::toGetResponseQrcode('Api500EasyPay_response', 'get_qrcode', $base_id, 8);
-        
+        if (!$get_qrcode) {
+            $get_qrcode['stateCode'] = '9999';
+            $get_qrcode['msg'] = '忙线中, 请稍后再试';
+        }
+
         return  (isset($get_qrcode['qrcodeUrl'])) ? $get_qrcode['qrcodeUrl'] : 'error :' . $get_qrcode['stateCode'] . 'msg : ' . $get_qrcode['msg'];
         //$this->pay($config['payUrl'], $post, $config['signKey']);
     }
