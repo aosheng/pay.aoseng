@@ -65,6 +65,17 @@ class Api500EasyPayController extends BaseController
     }
 
     public function call_back(Request $request){
-        $this->payService->pay_call_back($request);
+
+        $params['merNo'] = 'QYF201705260107';
+        $params['netway'] = 'WX';
+        $params['orderNum'] = '201706270916457941';
+        $params['amount'] = '1000';
+        $params['goodsName'] = '测试支付';
+        $params['payResult'] = '00';
+        $params['payDate'] = '20170627091645';
+        $params['sign'] = 'FDDB384D99546A43B089D9D5E5FAB75E'; 
+        $params = json_encode($params);
+
+        $this->payService->pay_call_back($params);
     }
 }

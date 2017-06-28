@@ -82,6 +82,8 @@ class Api500EasyPayService
         $base_id = $this->cache_service->setCache('Api500EasyPay_input', $input_data);
 
         // to get response qrcode
+        $get_qrcode['stateCode'] = '9999';
+        $get_qrcode['msg'] = '忙线中, 请稍后再试';
         sleep(5);
         $get_qrcode = self::toGetResponseQrcode('Api500EasyPay_response', 'get_qrcode', $base_id, 5);
         
@@ -147,25 +149,36 @@ class Api500EasyPayService
         return  $status;
     }
 
-    public function pay_call_back($request)
+    public function pay_call_back($params)
     {
+        $params = json_decode($params);
+        // 写入redis reponse 
+        
         $sign_key = '2566AE677271D6B88B2476BBF923ED88';
         
-        $params['merNo'] = $request['merNo'];
-        $params['netway'] = $request['netway'];
-        $params['orderNum'] = $request['orderNum'];
-        $params['amount'] = $request['amount'];
-        $params['goodsName'] = $request['goodsName'];
-        $params['payResult'] = $request['payResult'];
-        $params['payDate'] = $request['payDate'];
-        $params['sign'] = $request['sign']; 
+        $call_back['merNo'] = $params->merNo;
+        $call_back['netway'] = $params->netway;
+        $call_back['orderNum'] = $params->orderNum;
+        $call_back['amount'] = $params->amount;
+        $call_back['goodsName'] = $params->goodsName;
+        $call_back['payResult'] = $params->payResult;
+        $call_back['payDate'] = $params->payDate;
 
-        if (!self::is_sign($request, $sign_key)) { #验证返回签名数据
+        ksort($call_back);
+        $call_back['sign'] =  strtoupper(md5($this->util->json_encode($call_back) . $sign_key)); #生成签名 
+
+        if (!self::is_sign($call_back, $sign_key)) { #验证返回签名数据
             //self::write_log('返回签名验证失败!');
             Log::warning('返回签名验证失败!');
             //return $this->response->error('返回签名验证失败!', 403);
-            return $request;
+            dd($call_back);
+            //储存错误
+            return false;
         }
+
+        dd('success');
+
+        // 啟動任務 儲存call_back 進Redis, 回傳給 後台接口(找joy 拿)
 
         return $request;
 
