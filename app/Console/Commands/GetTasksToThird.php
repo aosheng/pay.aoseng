@@ -51,7 +51,7 @@ class GetTasksToThird extends Command
         $task_data = $this->cache_service->getCache($this->tags);
         //dd($task_data);
         Log::info('Tothird:GetTasksToThird start: ' . __FILE__ . 'LINE:' . __LINE__);
-        if (!$task_data) {
+        if (empty($task_data)) {
             return false;
         }
         Log::info('get input redis order : ' . __FILE__ . 'LINE:' . __LINE__);

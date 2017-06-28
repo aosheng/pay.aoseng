@@ -34,6 +34,10 @@ class Api500EasyPayCacheService
         $tasks = Redis::lrange($tags . '_base_id', 0, -1);
         $task_data = [];
         $return_data = [];
+        if (!$tasks) {
+            Log::info('getCache tasks null : ' . __FILE__ . 'LINE:' . __LINE__);
+            return false;
+        }
 
         foreach ($tasks as $task_base_id) {
             $get_task = Cache::store('redis')
