@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Http\Services\Api\V1\Api500EasyPayService;
 
 use Log;
+
 class Api500EasyPayController extends BaseController
 {
     protected $payService;
@@ -22,7 +23,7 @@ class Api500EasyPayController extends BaseController
 
     public function store(Request $request)
     {   
-        Log::info('get request = ' . print_r($request, true));
+        //Log::info('get request = ' . print_r($request->all(), true));
         
         $params['config']['merNo'] = 'QYF201705260107';
         $params['config']['signKey'] = '2566AE677271D6B88B2476BBF923ED88';
@@ -77,10 +78,13 @@ class Api500EasyPayController extends BaseController
         $params['payResult'] = '00';
         $params['payDate'] = '20170629033404';
         $params['sign'] = '7D93EA1A33435F2E828D4EA9DB95F8EA'; 
-        $params = json_encode($params);
         
-        Log::info('get request = ' . print_r($request, true));
-        $this->payService->pay_call_back($request);
-        //$this->payService->pay_call_back($params);
+        
+        //$params = json_encode($params);
+        $params = json_encode($request->all());
+
+        Log::info('get request = ' . print_r($params, true));
+        
+        $this->payService->pay_call_back($params);
     }
 }
