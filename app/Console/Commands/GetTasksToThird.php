@@ -51,7 +51,7 @@ class GetTasksToThird extends Command
         $task_data = $this->cache_service->getCache($this->tags, 'input_base_id');
        
         Log::info('# Tothird:GetTasksToThird start #' 
-            . ', task_data = ' . $task_data
+            . ', task_data = ' . print_r($task_data, true)
             . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
         );
 
