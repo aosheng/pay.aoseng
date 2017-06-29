@@ -22,6 +22,8 @@ class Api500EasyPayController extends BaseController
 
     public function store(Request $request)
     {   
+        Log::info('get request = ' . print_r($request, true));
+        
         $params['config']['merNo'] = 'QYF201705260107';
         $params['config']['signKey'] = '2566AE677271D6B88B2476BBF923ED88';
         $params['config']['encKey'] = 'GiWBZqsJ4GYZ8G8psuvAsTo3';
