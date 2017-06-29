@@ -18,15 +18,13 @@ class Api500EasyPayCacheService
     public function setCache($tags, $type, $data)
     {
         $base_id = $tags . '_' . uniqid();
-
+        
         Redis::rpush($tags . '_' . $type, $base_id);
         Cache::store('redis')
             ->tags([$tags])
             ->add($base_id, $data, self::SURVIVAL_TIME);
-
-        // Cache::store('redis')
-        //     ->tags([$tags])
-        //     ->add($base_id, $data, self::SURVIVAL_TIME);
+        
+        self::setMerNoOrdeNum($tags, $type, $data, $base_id);
         
         Log::info('# setCache #'  
             . ', ['. $tags . ']' 
@@ -36,6 +34,17 @@ class Api500EasyPayCacheService
         );
 
         return $base_id;
+    }
+
+    public function setMerNoOrdeNum($tags, $type, $data, $base_id)
+    {
+        //var_dump(json_decode($data['data']['data']));
+        $order_data = json_decode($data['data']['data']);
+        // 設置 base_id 的 商號 + 訂單 對照
+        Redis::set(
+            $tags . '_' . $type . '_' . $data['config']['merNo'] . '_' .  $order_data->orderNum,
+            $base_id
+        );
     }
 
     public function getCache($tags, $type)
@@ -166,6 +175,11 @@ class Api500EasyPayCacheService
             ->get($base_id);
     }
 
+    public function hasQrcode($tags, $type, $merNo, $orderNum)
+    {
+        return Redis::Get($tags . '_' . $type . '_' . $merNo . '_' . $orderNum);
+    }
+
     public function toGetResponseQrcode($tags, $type, $base_id)
     {
         return Cache::store('redis')
@@ -176,8 +190,9 @@ class Api500EasyPayCacheService
     public function deleteListCache($tags, $type, $base_id)
     {
         //Redis::lpop($tags . '_' . $type);
-        Redis::LREM($tags . '_' . $type, 0, $base_id); 
+        $is_delete = Redis::LREM($tags . '_' . $type, 0, $base_id); 
         Log::info('# delete list #'
+            . ', is_delete = ' . $is_delete
             . ', [' . $tags . '_' . $type .']'
             . ', base_id = ' . $base_id 
             . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
@@ -186,11 +201,18 @@ class Api500EasyPayCacheService
 
     public function deleteTagsCache($tags, $type, $base_id)
     {
-        Cache::store('redis')
-            ->tags([$tags. '_' . $type])
-            ->forget($base_id);
+        if (!$type) {
+            $is_delete_tags = Cache::store('redis')
+                ->tags([$tags])
+                ->forget($base_id);    
+        } else {
+            $is_delete_tags = Cache::store('redis')
+                ->tags([$tags. '_' . $type])
+                ->forget($base_id);
+        }
         
         Log::info('# forget tags key#'
+            . ', is_delete_tags = ' . $is_delete_tags
             . ', [' . $tags . '_' . $type .']' 
             . ', base_id = ' . $base_id 
             . ', FILE = '. __FILE__ . 'LINE:' . __LINE__

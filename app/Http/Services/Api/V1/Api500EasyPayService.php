@@ -16,6 +16,8 @@ class Api500EasyPayService
 
     protected $third = ['WX', 'ZFB'];
 
+    const GETQRCODETIMES = 8;
+
     public function __construct(Api500EasyPayCacheService $Api500EasyPayCacheService)
     {
         require_once(base_path() . '/resources/ThirdPay/500EasyPay/Util.php');
@@ -30,10 +32,16 @@ class Api500EasyPayService
 
     public function send($params)
     {
-        //dd($_SERVER['HTTPS'] ? 'https' : 'http' . '://' . $_SERVER['HTTP_HOST'] . $_SERVER['PHP_SELF']);
-        //dd(json_decode($params));
-
         $params = json_decode($params);
+
+        //$has_qrcode = $this->cache_service->hasQrcode('Api500EasyPay', 'input_base_id', 'QYF201705260107', '201706290756458117');
+        $has_qrcode = $this->cache_service->hasQrcode('Api500EasyPay', 'input_base_id', $params->config->merNo, $params->pay->orderNum);
+
+        if ($has_qrcode) {
+            $base_id = $has_qrcode;
+            return self::toGetResponseQrcode('Api500EasyPay', 'response_get_qrcode', $base_id, self::GETQRCODETIMES);
+        }
+        
         $config = array(
             'merNo' => $params->config->merNo,         #商户号 'qyf201705200001'	
             'signKey' => $params->config->signKey,      #MD5密钥 'AiYLumB03Fingt3R3ULdvFzS'
@@ -58,7 +66,7 @@ class Api500EasyPayService
 		$pay['charset'] = $params->pay->charset;  # 系统编码
 		$pay['callBackUrl'] = $params->pay->callBackUrl;  #通知地址 可以写成固定
 		$pay['callBackViewUrl'] = $params->pay->callBackViewUrl; #暂时没用
-        //dd($pay);
+        
         if (!self::pay_parames_check($pay)) {
             return $this->response->error('pay parames is an error.', 400);
         }
@@ -67,7 +75,6 @@ class Api500EasyPayService
         
 		$sign = md5($this->util->json_encode($pay) . $config['signKey']); #生成签名
 
-
 		$pay['sign'] = strtoupper($sign); #设置签名
 		$data = $this->util->json_encode($pay); #将数组转换为JSON格式
 
@@ -75,37 +82,34 @@ class Api500EasyPayService
 		Log::info('# 提交支付订单 #' . $pay['orderNum'] . app_path() . 'LINE:' . __LINE__);
 
 		$post = array('data' => $data);
- 
-        // 
         $input_data = ['url' => $config['payUrl'], 'data' => $post, 'config' => $config];
-        
         $base_id = $this->cache_service->setCache('Api500EasyPay', 'input_base_id', $input_data);
 
-        // to get response qrcode
         sleep(5);
-        $get_qrcode = self::toGetResponseQrcode('Api500EasyPay', 'response_get_qrcode', $base_id, 8);
-        if (!$get_qrcode) {
-            $get_qrcode['stateCode'] = '9999';
-            $get_qrcode['msg'] = '忙线中, 请稍后再试';
-        }
-
-        return  (isset($get_qrcode['qrcodeUrl'])) ? $get_qrcode['qrcodeUrl'] : 'error :' . $get_qrcode['stateCode'] . 'msg : ' . $get_qrcode['msg'];
-        //$this->pay($config['payUrl'], $post, $config['signKey']);
+        return self::toGetResponseQrcode('Api500EasyPay', 'response_get_qrcode', $base_id, self::GETQRCODETIMES);
     }
 
     public function toGetResponseQrcode($tags, $type, $base_id, $i)
     {
         sleep(1);
-        Log::info('start get qrcode : ' . __FILE__ . 'LINE:' . __LINE__);
-        $qr_code = $this->cache_service->toGetResponseQrcode($tags, $type, $base_id);
+        Log::info('# start get qrcode #' . __FILE__ . 'LINE:' . __LINE__);
+        $get_qrcode = $this->cache_service->toGetResponseQrcode($tags, $type, $base_id);
 
-        if ($qr_code == null && $i > 0) {
+        if ($get_qrcode == null && $i > 0) {
             $i--;
             self::toGetResponseQrcode($tags, $type, $base_id, $i);
         }
-        Log::info('get qrcode' . __FILE__ . 'LINE:' . __LINE__);
-        
-        return $qr_code;
+        Log::info('# get qrcode end #' 
+            . 'get_qrcode = ' . print_r($get_qrcode, true)
+            . 'FILE = ' . __FILE__ . 'LINE:' . __LINE__
+        );
+
+        if (!$get_qrcode) {
+            $get_qrcode['stateCode'] = '9999';
+            $get_qrcode['msg'] = '忙线中, 请稍后再试, 或重新整理';
+        }
+
+        return (isset($get_qrcode['qrcodeUrl'])) ? $get_qrcode['qrcodeUrl'] : 'error :' . $get_qrcode['stateCode'] . 'msg : ' . $get_qrcode['msg'];
     }
 
 
@@ -141,7 +145,7 @@ class Api500EasyPayService
             );
             $this->cache_service->setResponseCache('Api500EasyPay', 'response_get_qrcode', $base_id, $status);
             $this->cache_service->deleteListCache('Api500EasyPay', 'input_base_id', $base_id);
-            $this->cache_service->deleteTagsCache('Api500EasyPay', 'input', $base_id);
+            $this->cache_service->deleteTagsCache('Api500EasyPay', '', $base_id);
         }
 
         return  $status;
