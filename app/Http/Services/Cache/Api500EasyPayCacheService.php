@@ -63,7 +63,7 @@ class Api500EasyPayCacheService
         }
 
         Log::info('# get cache tasks #' 
-            . ', tasks = ' . $tasks
+            . ', tasks = ' . print_r($tasks, true)
             . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
         );
 
