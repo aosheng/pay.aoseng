@@ -187,14 +187,14 @@ class Api500EasyPayService
             return false;
         }
         // 送出時有 *100, callback時要 /100
-        $call_back['amount'] = (int)$call_back['amount'] / 100;
+        $call_back['amount'] = (int) $call_back['amount'] / 100;
 
         // 第三方call back 訊息存入redis , 發通知給後台接口
         dispatch((new SendCallBackToAdmin($base_id, $call_back))
             ->onQueue('send_call_back_to_admin'));
  
-        dd(0);
-        //return $request;
+        //dd(0);
+        return '';
 
     }
     // TODO: 查帳

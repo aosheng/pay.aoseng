@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1;
 use Illuminate\Http\Request;
 use App\Http\Services\Api\V1\Api500EasyPayService;
 
+use Log;
 class Api500EasyPayController extends BaseController
 {
     protected $payService;
@@ -35,7 +36,7 @@ class Api500EasyPayController extends BaseController
         $params['pay']['amount'] = '100';
         $params['pay']['goodsName'] = '测试支付';
         $params['pay']['charset'] = 'utf-8';
-        $params['pay']['callBackUrl'] = 'http://' . $_SERVER['HTTP_HOST']. '/api/Api500EasyPay/pay_callback';
+        $params['pay']['callBackUrl'] = 'http://' . $_SERVER['HTTP_HOST'] . '/api/Api500EasyPay/pay_callback';
         $params['pay']['callBackViewUrl'] =  "";
         $params = json_encode($params);
         
@@ -76,6 +77,7 @@ class Api500EasyPayController extends BaseController
         $params['sign'] = '7D93EA1A33435F2E828D4EA9DB95F8EA'; 
         $params = json_encode($params);
         
+        Log::info('get request = ' . print_r($request, true));
         $this->payService->pay_call_back($request);
         //$this->payService->pay_call_back($params);
     }
