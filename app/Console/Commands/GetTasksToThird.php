@@ -49,11 +49,14 @@ class GetTasksToThird extends Command
     {
         //todo get redis input data to send order
         $task_data = $this->cache_service->getCache($this->tags);
-        //dd($task_data);
+       
         Log::info('Tothird:GetTasksToThird start: ' . __FILE__ . 'LINE:' . __LINE__);
         if (empty($task_data)) {
+            Log::warning('# Tothird:GetTasksToThird warning # No data' 
+                . __FILE__ . 'LINE:' . __LINE__);
             return false;
         }
+
         Log::info('get input redis order : ' . __FILE__ . 'LINE:' . __LINE__);
         foreach ($task_data as $data) {
             dispatch((new getQrcode($data))

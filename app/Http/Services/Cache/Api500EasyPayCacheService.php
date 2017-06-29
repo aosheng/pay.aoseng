@@ -8,17 +8,15 @@ use Log;
 class Api500EasyPayCacheService
 {
     const SURVIVAL_TIME = 20;
-    const LIMIT = 20;
+    const LIMIT = 50;
     
     public function __construct()
     {
-
+        Cache::store('redis')->setPrefix('500EasyPay');
     }
 
     public function setCache($tags, $data)
     {
-
-        // into redis
         $base_id = $tags . '_' . uniqid();
 
         Redis::rpush($tags . '_base_id', $base_id);
@@ -26,10 +24,12 @@ class Api500EasyPayCacheService
             ->tags([$tags])
             ->add($base_id, $data, self::SURVIVAL_TIME);
         
-        Log::info('setCache : '  . '['. $tags . '] : ' 
-            . 'base_id = ' . $base_id 
-            . 'data = ' . print_r($data, true) 
-            . __FILE__ . 'LINE:' . __LINE__);
+        Log::info('# setCache #'  
+            . ', ['. $tags . ']' 
+            . ', base_id = ' . $base_id 
+            . ', data = ' . print_r($data, true) 
+            . ', FILE = ' .__FILE__ . 'LINE:' . __LINE__
+        );
 
         return $base_id;
     }
@@ -39,8 +39,11 @@ class Api500EasyPayCacheService
         $tasks = Redis::lrange($tags . '_base_id', 0, -1);
         $task_data = [];
         $return_data = [];
+
         if (!$tasks) {
-            Log::info('getCache tasks null : ' . __FILE__ . 'LINE:' . __LINE__);
+            Log::info('# getCache tasks null #' 
+                . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
+            );
             return false;
         }
 
@@ -50,7 +53,11 @@ class Api500EasyPayCacheService
                 ->get($task_base_id);
             
             if (!$get_task) {
-                Log::warning('redis get warning :' . '['. $tags . '] : ' . 'base_id = ' . $task_base_id . __FILE__ . 'LINE:' . __LINE__);
+                Log::warning('# get cache warning #' 
+                    . ', ['. $tags . ']' 
+                    . ', base_id = ' . $task_base_id 
+                    . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
+                );
                 continue;
             }
 
@@ -60,45 +67,53 @@ class Api500EasyPayCacheService
             array_push($return_data, $task_data);
         }
 
-        Log::info('getCache_data : ' . print_r($return_data, true) . __FILE__ . 'LINE:' . __LINE__);
+        Log::info('# getCache_data #' 
+            . ', return_data = ' . print_r($return_data, true) 
+            . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
+        );
 
         return $return_data;
     }
 
     public function setSendCache($tags, $type, $base_id, $data)
-    {
-        
+    {     
         Redis::rpush($tags . '_' . $type, $base_id);
         Cache::store('redis')
             ->tags([$tags . '_' . $type])
             ->add($base_id, $data, self::SURVIVAL_TIME);
         
-        Log::info('setSendCache : ['. $tags . '_' . $type .'],
-            base_id = '. $base_id . ',
-            data = ' . print_r($data, true) . __FILE__ . 'LINE:' . __LINE__);
+        Log::info('# setSendCache #'
+            . ', ['. $tags . '_' . $type .']'
+            . ', base_id = '. $base_id 
+            . ', data = ' . print_r($data, true) 
+            . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
+        );
     }
     
     public function setResponseCache($tags, $type, $base_id, $data)
-    {
-        
+    {   
         Redis::rpush($tags . '_' . $type, $base_id);
         Cache::store('redis')
             ->tags([$tags . '_' . $type])
             ->add($base_id, $data, self::SURVIVAL_TIME);
         
-        Log::info('setResponseCache : ['. $tags . '_' . $type .'],
-            base_id = '. $base_id . ',
-            data = ' . print_r($data, true) . __FILE__ . 'LINE:' . __LINE__);
+        Log::info('# setResponseCache #'
+            . ', ['. $tags . '_' . $type .']'
+            . ', base_id = '. $base_id 
+            . ', data = ' . print_r($data, true) 
+            . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
+        );
 
         self::setCallBackWaitCache($tags, 'call_back_wait', $base_id, $data);
-        Log::info('setCallBackWaitCache : ['. $tags . '_call_back_wait]' . __FILE__ . 'LINE:' . __LINE__);
+        Log::info('# setCallBackWaitCache #' 
+            . ', ['. $tags . '_call_back_wait]' 
+            . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
+        );
 
     }
 
     public function setCallBackWaitCache($tags, $type, $base_id, $data)
     {
-        // $data['merNO']
-        // $data['orderNum']
         if (!$data) {
             return false;
         }
@@ -106,59 +121,61 @@ class Api500EasyPayCacheService
         
         Cache::store('redis')
             ->tags([$tags . '_' . $type])
-            ->add($data['merNo'] . '_' . $data['orderNum'], $base_id, 180);
-
-
-        // 取call back 資料
-        Log::info(Cache::store('redis')->tags([$tags . '_' . $type])->get($data['merNo'] . '_' . $data['orderNum']));
-        // 取send的資料 用來取sing key
-        Log::info('--->' . print_r(Cache::store('redis')->tags(['Api500EasyPay_send'])->get('Api500EasyPay_input_59536120bc1cf'), true));
-    }
+            ->add($data['merNo'] . '_' . $data['orderNum'], $base_id, self::SURVIVAL_TIME);
+        }
 
     public function saveCallBackCache($tags, $type, $base_id, $data)
     {
-        //dd([$tags, $type, $base_id, $data]);
         Redis::rpush($tags . '_' . $type, $data['merNo'] . '_' . $data['orderNum']);
         
         Cache::store('redis')
             ->tags([$tags . '_' . $type])
             ->forever($data['merNo'] . '_' . $data['orderNum'], ['base_id' => $base_id, 'data' => $data]);
-        Log::info('save call_back success : ['
-            . $tags . '_' . $type . '] :'
-            . $data['merNo'] . '_' . $data['orderNum']
-            . 'base_id' . $base_id
-            . __FILE__ . 'LINE:' . __LINE__);
+        Log::info('# save call_back success #'
+            . ', [' . $tags . '_' . $type . ']'
+            . ', ' .$data['merNo'] . '_' . $data['orderNum']
+            . ', base_id = ' . $base_id
+            . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
+        );
     }
 
     public function getCallBackWaitCache($tags, $type, $merNo, $orderNum)
     {
-        // 取call back 資料
-        //dd([$tags, $type, $merNo, $orderNum]);
-        return Cache::store('redis')->tags([$tags . '_' . $type])->get($merNo . '_' . $orderNum);
+        return Cache::store('redis')
+            ->tags([$tags . '_' . $type])
+            ->get($merNo . '_' . $orderNum);
     }
 
     public function checkCallBackCache($tags, $type, $merNo, $orderNum)
     {
-        return Cache::store('redis')->tags([$tags . '_' . $type])->get($merNo . '_' . $orderNum);
+        return Cache::store('redis')
+            ->tags([$tags . '_' . $type])
+            ->get($merNo . '_' . $orderNum);
     }
 
     public function getSendCache($tags, $type, $base_id)
     {
-        return Cache::store('redis')->tags([$tags . '_' . $type])->get($base_id);
+        return Cache::store('redis')
+            ->tags([$tags . '_' . $type])
+            ->get($base_id);
     }
 
     public function toGetResponseQrcode($tags, $type, $base_id)
     {
         return Cache::store('redis')
-                ->tags([$tags . '_' . $type])
-                ->get($base_id);
+            ->tags([$tags . '_' . $type])
+            ->get($base_id);
     }
 
-    public function deleteCache($tags, $type, $base_id)
+    public function deleteListCache($tags, $type, $base_id)
     {
-        Redis::lpop($tags . '_' . $type);
-        
-        Log::info('delete list [' . $tags . '_' . $type .'] base_id= ' . $base_id . __FILE__ . 'LINE:' . __LINE__);
+        //Redis::lpop($tags . '_' . $type);
+        Redis::LREM($tags . '_' . $type, 0, $base_id); 
+        Log::info('# delete list #'
+            . ', [' . $tags . '_' . $type .']'
+            . ', base_id = ' . $base_id 
+            . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
+        );
     }
 
     public function deleteTagsCache($tags, $type, $base_id)
@@ -167,6 +184,10 @@ class Api500EasyPayCacheService
             ->tags([$tags. '_' . $type])
             ->forget($base_id);
         
-        Log::info('forget [' . $tags . '_' . $type .'] base_id= ' . $base_id . __FILE__ . 'LINE:' . __LINE__);
+        Log::info('# forget tags key#'
+            . ', [' . $tags . '_' . $type .']' 
+            . ', base_id = ' . $base_id 
+            . ', FILE = '. __FILE__ . 'LINE:' . __LINE__
+        );
     }
 }

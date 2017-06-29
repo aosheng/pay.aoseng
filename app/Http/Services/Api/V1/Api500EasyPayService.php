@@ -21,7 +21,7 @@ class Api500EasyPayService
         require_once(base_path() . '/resources/ThirdPay/500EasyPay/Util.php');
         require_once(base_path() . '/resources/ThirdPay/500EasyPay/json.php');
 
-        date_default_timezone_set("PRC");
+        //date_default_timezone_set("PRC");
         $this->cache_service = $Api500EasyPayCacheService;
         $this->services_json = new \Services_JSON();
         $this->util = new \util();
@@ -112,41 +112,37 @@ class Api500EasyPayService
 
     public function pay($url, $data, $sign_key, $base_id)
     {
-        //$is_return_data = false;
         $is_return_data = [];
         $is_return_data = $this->curl_post($url, $data);
-        $status = $this->services_json->decode($is_return_data); #将返回json数据转换为数组
-        Log::info('pay status' . print_r($status, true) . __FILE__ . 'LINE:' . __LINE__);
+        // 将返回json数据转换为数组
+        $status = $this->services_json->decode($is_return_data); 
+        Log::info('# pay status #' 
+            . ', status = ' . print_r($status, true) 
+            . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
+        );
+        
         if ($status['stateCode'] !== '00') {
-            //self::write_log('系统错误,错误号：' . $status->stateCode . '错误描述：' . $status->msg);
-            Log::warning('系统错误,错误号：' . $status['stateCode'] . '错误描述：' . $status['msg'] . __FILE__ . 'LINE:' . __LINE__);
-            //return $this->response->error('系统错误,错误号：' . $status['stateCode'] . '错误描述：' . $status['msg'], 400);
+            Log::warning('# 系统错误 #' 
+                . ', 错误号: ' . $status['stateCode'] 
+                . ', 错误描述: ' . $status['msg'] 
+                . ', FILE = '. __FILE__ . 'LINE:' . __LINE__
+            );
             return $status;
         }
         
         if (!self::is_sign($status, $sign_key)) { #验证返回签名数据
-            //self::write_log('返回签名验证失败!');
             Log::warning('返回签名验证失败!' . __FILE__ . 'LINE:' . __LINE__);
-            //return $this->response->error('返回签名验证失败!', 403);
             return $status;
         }
 		
-        // if ($status['stateCode'] == '00') {
-        //     $stateCode = $status['stateCode'];
-        //     $msg = $status['msg'];
-        //     $orderNum = $status['orderNum'];
-        //     $amount = $status['amount'];
-        //     $amount = $amount / 100;
-        //     $string = '创建代付成功!订单号：' . $orderNum . ' 系统消息：' . $msg . ' 代付金额：' . $amount;
-        //     self::write_log($string);		
-        //     return $this->response->array($status);
-        //     //return $this->response->item($status, new Api500EasyPayTransformer);	
-        // }
         if ($status['stateCode'] == '00') {
-            Log::info('get qrcode info' . print_r($status, true) . __FILE__ . 'LINE:' . __LINE__);
+            Log::info('# get qrcode info #' 
+                . ', status = ' . print_r($status, true) 
+                . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
+            );
             $this->cache_service->setResponseCache('Api500EasyPay', 'response_get_qrcode', $base_id, $status);
-            // $this->cache_service->deleteCache('Api500EasyPay_input', 'base_id', $base_id);
-            // $this->cache_service->deleteTagsCache('Api500EasyPay', 'input', $base_id);
+            $this->cache_service->deleteListCache('Api500EasyPay', 'input_base_id', $base_id);
+            $this->cache_service->deleteTagsCache('Api500EasyPay', 'input', $base_id);
         }
 
         return  $status;
@@ -155,17 +151,17 @@ class Api500EasyPayService
     public function pay_call_back($params)
     {
         $params = json_decode($params);
-        // 写入redis reponse 
 
-        $base_id = $this->cache_service->getCallBackWaitCache('Api500EasyPay', 'call_back_wait', $params->merNo, $params->orderNum);
-
+        $base_id = $this->cache_service->getCallBackWaitCache(
+                'Api500EasyPay', 
+                'call_back_wait', 
+                $params->merNo, 
+                $params->orderNum
+            );
         // 取send的資料 用來取sing key
-        $send_data = $this->cache_service->getSendCache('Api500EasyPay', 'send', $base_id);
-        //Cache::store('redis')->tags(['Api500EasyPay_send'])->get('Api500EasyPay_input_59536120bc1cf');
-   
-        $sign_key = $send_data['config']['signKey'];
-        //dd($sign_key);
+        $send_data = $this->cache_service->getSendCache('Api500EasyPay', 'send', $base_id); 
         //$sign_key = '2566AE677271D6B88B2476BBF923ED88';
+        $sign_key = $send_data['config']['signKey'];
         
         $call_back['merNo'] = $params->merNo;
         $call_back['netway'] = $params->netway;
@@ -176,28 +172,29 @@ class Api500EasyPayService
         $call_back['payDate'] = $params->payDate;
 
         ksort($call_back);
-        $call_back['sign'] =  strtoupper(md5($this->util->json_encode($call_back) . $sign_key)); #生成签名 
+        // 生成签名
+        $call_back['sign'] =  strtoupper(md5($this->util->json_encode($call_back) . $sign_key)); 
 
-        if (!self::is_sign($call_back, $sign_key)) { #验证返回签名数据
-            //self::write_log('返回签名验证失败!');
-            Log::warning('返回签名验证失败!' . print_r($call_back, true) . __FILE__ . 'LINE:' . __LINE__);
-            //return $this->response->error('返回签名验证失败!', 403);
-            //储存错误
+        // 验证返回签名数据
+        if (!self::is_sign($call_back, $sign_key)) { 
+            Log::warning('# 返回签名验证失败! #' 
+                . ', call_back = ' . print_r($call_back, true) 
+                . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
+            );
             return false;
         }
+        // 送出時有 *100, callback時要 /100
         $call_back['amount'] = (int)$call_back['amount'] / 100;
 
-        //var_dump($call_back);
-        //dd('success');
         // 第三方call back 訊息存入redis , 發通知給後台接口
         dispatch((new SendCallBackToAdmin($base_id, $call_back))
             ->onQueue('send_call_back_to_admin'));
-        dd('success');
-
-        return $request;
+ 
+        dd(0);
+        //return $request;
 
     }
-
+    // TODO: 查帳
     public function pay_check_status($params)
     {
         // TODO: 檢查data config sing 再送出查詢
@@ -211,7 +208,7 @@ class Api500EasyPayService
 	    );
         
         if (!self::config_parames_check($config)) {
-            Log::error('config 配置錯誤');
+            Log::error('config 配置錯誤' . __FILE__ . 'LINE:' . __LINE__);
             return $this->response->error('Config is an error.', 400);
         }
 
@@ -243,16 +240,17 @@ class Api500EasyPayService
 
     }
 
+    // TODO: 代付
     public function remit()
     {
 
     }
-
+    // TODO: 代付callback
     public function remit_callback()
     {
 
     }
-
+    // TODO: 改用Guzzle, PHP HTTP client 
     private function curl_post($url, $data)
     {
         $ch = curl_init();
@@ -274,7 +272,6 @@ class Api500EasyPayService
     }
 
     // 以下为检查动作
-
     private function config_parames_check($config)
     {
 		if ($config['merNo'] == ''){
@@ -307,15 +304,15 @@ class Api500EasyPayService
     
     private function pay_parames_check($parames)
     {
-        // if (empty($parames['version'])) {
-        //     self::write_log('请配置版本号');
-		// 	return false;
-        // }
+        if (empty($parames['version'])) {
+            Log::error('请配置版本号');
+			return false;
+        }
 
-       if (!in_array($parames['netway'], $this->third)) {
+        if (!in_array($parames['netway'], $this->third)) {
             Log::error('支付选择不正确');
 			return false;
-       }
+        }
        
         if ($parames['amount'] < 0) {
             Log::error('金额不正确');
@@ -339,26 +336,24 @@ class Api500EasyPayService
 
         return true;
     }
-    
-    private function is_sign($row, $signKey) { #效验服务器返回数据
-        $r_sign = $row['sign']; #保留签名数据
+    // 效验服务器返回数据
+    private function is_sign($row, $signKey) { 
+        // 保留签名数据
+        $r_sign = $row['sign'];
         $arr = array();
             foreach ($row as $key => $v) {
-                if ($key !== 'sign') { #删除签名
+                // 删除签名
+                if ($key !== 'sign') {
                     $arr[$key] = $v;
                 }
             }
         ksort($arr);
-        $sign = strtoupper(md5($this->util->json_encode($arr) . $signKey)); #生成签名
+        # 生成签名
+        $sign = strtoupper(md5($this->util->json_encode($arr) . $signKey));
         if ($sign == $r_sign) {
             return true;
         } else {
             return false;
         }
     }
-
-    private function write_log($str){ #输出LOG日志
-		$str = date('Y-m-d H:i:s') . ' '  . $str . "\r\n";
-		$data = file_put_contents("test.log", $str,FILE_APPEND);
-	}
 }
