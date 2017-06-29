@@ -67,7 +67,7 @@ class Api500EasyPayController extends BaseController
         $this->payService->pay_check_status($params);
     }
 
-    public function call_back(Request $request){
+    public function pay_call_back(Request $request){
 
         $params['merNo'] = 'QYF201705260107';
         $params['netway'] = 'WX';
