@@ -33,7 +33,7 @@ class Api500EasyPayController extends BaseController
 
         $params['pay']['version'] = 'V2.0.0.0';
         $params['pay']['merNo'] = $params['config']['merNo']; 
-        $params['pay']['netway'] = 'WX';    
+        $params['pay']['netway'] = 'WX';
         $params['pay']['random'] = (string) rand(1000,9999);
         $params['pay']['orderNum'] = date('YmdHis') . rand(1000,9999);
         $params['pay']['amount'] = '100';
@@ -46,8 +46,8 @@ class Api500EasyPayController extends BaseController
         return $this->payService->send($params);
         
         //$this->payService->send($request->all());              
-    }   
-
+    }
+    // 缺查帳 url
     public function check(Request $request)
     {
         $params['config']['merNo'] = 'QYF201705260107';
@@ -68,20 +68,19 @@ class Api500EasyPayController extends BaseController
         $this->payService->pay_check_status($params);
     }
 
-    public function pay_call_back(Request $request){
-
+    public function pay_call_back(Request $request)
+    {
         $params['merNo'] = 'QYF201705260107';
         $params['netway'] = 'WX';
-        $params['orderNum'] = '201706290334045477';
-        $params['amount'] = '1000';
+        $params['orderNum'] = '201706300121146902';
+        $params['amount'] = '100';
         $params['goodsName'] = '测试支付';
         $params['payResult'] = '00';
         $params['payDate'] = '20170629033404';
-        $params['sign'] = '7D93EA1A33435F2E828D4EA9DB95F8EA'; 
+        $params['sign'] = '495EF976F0F3DCB9919CA294DAFD74DC'; 
         
-        
-        //$params = json_encode($params);
-        $params = json_encode($request->all());
+        $params = json_encode($params);
+        //$params = json_encode($request->all());
 
         Log::info('get request = ' . print_r($params, true));
         
