@@ -46,7 +46,7 @@ $api->version('v1', [
         'as' => 'Api500EasyPay.check',
         'uses' => 'Api500EasyPayController@check',
     ]);
-    $api->post('Api500EasyPay/pay_call_back', [
+    $api->any('Api500EasyPay/pay_call_back', [
         'as' => 'Api500EasyPay.pay_call_back',
         'uses' => 'Api500EasyPayController@pay_call_back',
     ]);
