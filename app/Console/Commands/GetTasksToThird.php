@@ -50,9 +50,13 @@ class GetTasksToThird extends Command
         //todo get redis input data to send order
         $task_data = $this->cache_service->getCache($this->tags, 'input_base_id');
        
-        Log::info('Tothird:GetTasksToThird start: ' . __FILE__ . 'LINE:' . __LINE__);
+        Log::info('Tothird:GetTasksToThird start: ' 
+            . 'task_data' . $task_data
+            . 'FILE' . __FILE__ . 'LINE:' . __LINE__
+        );
+        
         if (empty($task_data)) {
-            Log::warning('# Tothird:GetTasksToThird warning # No data' 
+            Log::warning('# Tothird:GetTasksToThird warning # No data'
                 . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__);
             return false;
         }

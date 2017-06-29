@@ -62,6 +62,11 @@ class Api500EasyPayCacheService
             return false;
         }
 
+        Log::info('# get cache tasks #' 
+            . ', tasks = ' . $tasks
+            . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
+        );
+
         foreach ($tasks as $task_base_id) {
             $get_task = Cache::store('redis')
                 ->tags([$tags])
