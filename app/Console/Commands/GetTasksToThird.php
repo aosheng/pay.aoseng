@@ -36,7 +36,7 @@ class GetTasksToThird extends Command
     public function __construct(Api500EasyPayCacheService $Api500EasyPayCacheService)
     {
         parent::__construct();
-        $this->tags = 'Api500EasyPay_input';
+        $this->tags = 'Api500EasyPay';
         $this->cache_service = $Api500EasyPayCacheService;
     }
 
@@ -48,12 +48,12 @@ class GetTasksToThird extends Command
     public function handle()
     {
         //todo get redis input data to send order
-        $task_data = $this->cache_service->getCache($this->tags);
+        $task_data = $this->cache_service->getCache($this->tags, 'input_base_id');
        
         Log::info('Tothird:GetTasksToThird start: ' . __FILE__ . 'LINE:' . __LINE__);
         if (empty($task_data)) {
             Log::warning('# Tothird:GetTasksToThird warning # No data' 
-                . __FILE__ . 'LINE:' . __LINE__);
+                . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__);
             return false;
         }
 

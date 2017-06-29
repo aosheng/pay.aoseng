@@ -67,24 +67,23 @@ class Api500EasyPayService
         
 		$sign = md5($this->util->json_encode($pay) . $config['signKey']); #生成签名
 
-        //dd([ $pay, $config['signKey'] ]);
 
 		$pay['sign'] = strtoupper($sign); #设置签名
 		$data = $this->util->json_encode($pay); #将数组转换为JSON格式
 
-		Log::info('通知地址：' . $pay['callBackUrl'] . base_path() . 'LINE:' . __LINE__);
-		Log::info('提交支付订单：' . $pay['orderNum'] . base_path() . 'LINE:' . __LINE__);
+		Log::info('# 通知地址 #' . $pay['callBackUrl'] . app_path() . 'LINE:' . __LINE__);
+		Log::info('# 提交支付订单 #' . $pay['orderNum'] . app_path() . 'LINE:' . __LINE__);
 
 		$post = array('data' => $data);
  
-        // $base_id = uniqid();
+        // 
         $input_data = ['url' => $config['payUrl'], 'data' => $post, 'config' => $config];
         
-        $base_id = $this->cache_service->setCache('Api500EasyPay_input', $input_data);
+        $base_id = $this->cache_service->setCache('Api500EasyPay', 'input_base_id', $input_data);
 
         // to get response qrcode
         sleep(5);
-        $get_qrcode = self::toGetResponseQrcode('Api500EasyPay_response', 'get_qrcode', $base_id, 8);
+        $get_qrcode = self::toGetResponseQrcode('Api500EasyPay', 'response_get_qrcode', $base_id, 8);
         if (!$get_qrcode) {
             $get_qrcode['stateCode'] = '9999';
             $get_qrcode['msg'] = '忙线中, 请稍后再试';

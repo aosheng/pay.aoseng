@@ -47,19 +47,19 @@ class SendCallBackToAdmin implements ShouldQueue
         
         if ($check_call_back) {
             Log::warning('# call_back saved #'
-                . '[Api500EasyPay_save_call_back]'
-                . ' ,merNo : ' . $this->call_back_data['merNo']
-                . ' ,orderNum : ' . $this->call_back_data['orderNum']
-                . ' ,' . __FILE__ . 'LINE:' . __LINE__
+                . ', [Api500EasyPay_save_call_back]'
+                . ', merNo : ' . $this->call_back_data['merNo']
+                . ', orderNum : ' . $this->call_back_data['orderNum']
+                . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
             );
             return false;
         }
 
         $this->cache_service->saveCallBackCache('Api500EasyPay', 'save_call_back', $this->base_id, $this->call_back_data);
-        Log::info('start save_call_back cache : ' 
-            . 'base_id = ' . $this->base_id
-            . 'call_back_data = ' . print_r($this->call_back_data, true)
-            . __FILE__ . 'LINE:' . __LINE__
+        Log::info('save_call_back cache success: ' 
+            . ', base_id = ' . $this->base_id
+            . ', call_back_data = ' . print_r($this->call_back_data, true)
+            . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
         );
 
         // TODO: 通知後台更新
@@ -69,9 +69,9 @@ class SendCallBackToAdmin implements ShouldQueue
     {
         // Called when the job is failing...
         Log::error('# SendCallBackToAdmin Job fail #' 
-            . ' ,base_id = ' . $this->base_id
-            . ' ,call_back_data = ' . print_r($this->call_back_data, true)
-            . ' ,' .__FILE__ . 'LINE:' . __LINE__
+            . ', base_id = ' . $this->base_id
+            . ', call_back_data = ' . print_r($this->call_back_data, true)
+            . ', FILE = ' .__FILE__ . 'LINE:' . __LINE__
         );
     }
 }
