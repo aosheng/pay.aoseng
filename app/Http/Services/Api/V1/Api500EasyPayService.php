@@ -174,8 +174,8 @@ class Api500EasyPayService
 
     public function pay_call_back($params)
     {
-        //$params = json_decode($params); # test
-        $params = json_decode($params['data']);
+        $params = json_decode($params); # test
+        //$params = json_decode($params['data']);
         
 
         Log::info('params =>' . print_r($params, true));
@@ -227,8 +227,8 @@ class Api500EasyPayService
 
         ksort($call_back);
         // 生成签名 test
-        //$call_back['sign'] =  strtoupper(md5($this->util->json_encode($call_back) . $sign_key));
-        $call_back['sign'] = $params->sign;
+        $call_back['sign'] =  strtoupper(md5($this->util->json_encode($call_back) . $sign_key));
+        //$call_back['sign'] = $params->sign;
 
         // 验证返回签名数据
         if (!self::is_sign($call_back, $sign_key)) { 
