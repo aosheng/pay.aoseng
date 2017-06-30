@@ -182,12 +182,24 @@ class Api500EasyPayService
             $params['merNo'],
             $params['orderNum']
         );
+
+        if (!$base_id) {
+            Log::warning('# base_id null #'
+                . '[' . self::PAYMENTSERVICE . '_call_back_wait]'
+                . 'merNo' .  $params['merNo']
+                . 'orderNum' . $params['orderNum']
+            );
+            return false;
+        }
+
+        Log::info('base_id = ' . $base_id);
         // 取send的資料 拿sign_key
         $get_send_cache = $this->cache_service->getSendCache(
             self::PAYMENTSERVICE,
             'send',
             $base_id
         ); 
+        Log::info('get_send_cache = ' . print_r($get_send_cache, true));
         //$sign_key = '2566AE677271D6B88B2476BBF923ED88';
         $sign_key = $get_send_cache['config']['signKey'];
         

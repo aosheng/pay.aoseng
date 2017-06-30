@@ -82,7 +82,7 @@ class Api500EasyPayController extends BaseController
         //$params = json_encode($params);
         //$params = json_encode($request->all());
         //$params = json_decode($request->all());
-        Log::info('get request = ' . print_r($params, true));
+        Log::info('get request = ' . print_r($request, true));
         
         //$this->payService->pay_call_back($params);
         $this->payService->pay_call_back($request);
