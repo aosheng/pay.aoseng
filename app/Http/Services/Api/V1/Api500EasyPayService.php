@@ -174,12 +174,9 @@ class Api500EasyPayService
 
     public function pay_call_back($params)
     {
-        $params = $params['data'];
-
+        $params = json_decode($params['data']);
+        
         Log::info('params =>' . print_r($params, true));
-
-        Log::info('params->merNo =>' . print_r($params->merNo, true));
-
         $base_id = $this->cache_service->getCallBackWaitCache(
             self::PAYMENTSERVICE,
             'call_back_wait',
