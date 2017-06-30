@@ -195,7 +195,11 @@ class Api500EasyPayService
             . ', status = ' . print_r($status, true) 
             . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
         );
-        
+        // 再想想要不要包進cache_service？
+        $this->cache_service->setResponseCache(self::PAYMENTSERVICE, 'response_get_qrcode', $base_id, $status);
+        $this->cache_service->deleteListCache(self::PAYMENTSERVICE, 'input_base_id', $base_id);
+        $this->cache_service->deleteTagsCache(self::PAYMENTSERVICE, '', $base_id);
+    
         if ($status['stateCode'] !== '00') {
             Log::warning('# 系统错误 #'
                 . ', 错误号: ' . $status['stateCode']
@@ -215,10 +219,6 @@ class Api500EasyPayService
                 . ', status = ' . print_r($status, true) 
                 . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
             );
-            // 再想想要不要包進cache_service？
-            $this->cache_service->setResponseCache(self::PAYMENTSERVICE, 'response_get_qrcode', $base_id, $status);
-            $this->cache_service->deleteListCache(self::PAYMENTSERVICE, 'input_base_id', $base_id);
-            $this->cache_service->deleteTagsCache(self::PAYMENTSERVICE, '', $base_id);
         }
 
         return  $status;
