@@ -72,19 +72,18 @@ class Api500EasyPayController extends BaseController
     {
         $params['merNo'] = 'QYF201705260107';
         $params['netway'] = 'WX';
-        $params['orderNum'] = '201706300121146902';
+        $params['orderNum'] = '201706301155148272';
         $params['amount'] = '100';
         $params['goodsName'] = '测试支付';
         $params['payResult'] = '00';
-        $params['payDate'] = '20170629033404';
-        $params['sign'] = '495EF976F0F3DCB9919CA294DAFD74DC'; 
-        
-        //$params = json_encode($params);
-        //$params = json_encode($request->all());
-        //$params = json_decode($request->all());
+        $params['payDate'] = '20170630115514';
+        $params['sign'] = 'DA532FE5914E0EB2097C8085DD6BA64C'; 
+        //$params = json_encode($params); # test 
+        //Log::info('get request = ' . print_r($params, true)); # test
+       
         Log::info('get request = ' . print_r($request->all(), true));
         
-        //$this->payService->pay_call_back($params);
+        //$this->payService->pay_call_back($params); # test
         $this->payService->pay_call_back($request->all());
     }
 }

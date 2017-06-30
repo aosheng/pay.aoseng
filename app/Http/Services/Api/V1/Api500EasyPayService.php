@@ -174,7 +174,9 @@ class Api500EasyPayService
 
     public function pay_call_back($params)
     {
+        //$params = json_decode($params); # test
         $params = json_decode($params['data']);
+        
 
         Log::info('params =>' . print_r($params, true));
         $base_id = $this->cache_service->getCallBackWaitCache(
@@ -183,7 +185,7 @@ class Api500EasyPayService
             $params->merNo,
             $params->orderNum
         );
-        $base_id = 'Api500EasyPay_5954c5e904895';
+        //$base_id = 'Api500EasyPay_5954c5e904895';
         if (!$base_id) {
             Log::warning('# base_id null #'
                 . '[' . self::PAYMENTSERVICE . '_call_back_wait]'
@@ -201,7 +203,17 @@ class Api500EasyPayService
             'send',
             $base_id
         ); 
-        Log::info('get_send_cache = ' . print_r($get_send_cache, true));
+
+        if (!$get_send_cache) {
+            Log::warning('# get_send_cache null #'
+                . '[' . self::PAYMENTSERVICE . '_send]'
+                . ', base_id' .  $base_id
+                . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
+            );
+            return false;
+        }
+
+        Log::info('# get_send_cache # ' . print_r($get_send_cache, true));
         //$sign_key = '2566AE677271D6B88B2476BBF923ED88';
         $sign_key = $get_send_cache['config']['signKey'];
         
@@ -214,8 +226,9 @@ class Api500EasyPayService
         $call_back['payDate'] = $params->payDate;
 
         ksort($call_back);
-        // 生成签名
-        $call_back['sign'] =  strtoupper(md5($this->util->json_encode($call_back) . $sign_key));
+        // 生成签名 test
+        //$call_back['sign'] =  strtoupper(md5($this->util->json_encode($call_back) . $sign_key));
+        $call_back['sign'] = $params->sign;
 
         // 验证返回签名数据
         if (!self::is_sign($call_back, $sign_key)) { 
