@@ -34,8 +34,7 @@ class Api500EasyPayService
     public function send($params)
     {
         $params = json_decode($params);
-
-        //$has_qrcode = $this->cache_service->hasQrcode('Api500EasyPay', 'input_base_id', 'QYF201705260107', '201706290756458117');
+        
         $has_qrcode = $this->cache_service->hasQrcode(
             self::PAYMENTSERVICE,
             'input_base_id',
@@ -226,11 +225,30 @@ class Api500EasyPayService
     }
 
     public function pay_call_back($params)
-    {
+    {      
         // $params = json_decode($params); # test
         $params = json_decode($params['data']);
         
         Log::info('params =>' . print_r($params, true));
+
+        // 確認是否已發過
+        $check_call_back = $this->cache_service->checkCallBackCache(
+            self::PAYMENTSERVICE,
+            'save_call_back',
+            $params->merNo,
+            $params->orderNum
+        );
+        
+        if ($check_call_back) {
+            Log::warning('# call_back saved #'
+                . ', [Api500EasyPay_save_call_back]'
+                . ', merNo : ' . $params->merNo
+                . ', orderNum : ' . $params->orderNum
+                . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
+            );
+            return false;
+        }
+
         $base_id = $this->cache_service->getCallBackWaitCache(
             self::PAYMENTSERVICE,
             'call_back_wait',
@@ -266,7 +284,7 @@ class Api500EasyPayService
         }
 
         Log::info('# get_send_cache # ' . print_r($get_send_cache, true));
-        //$sign_key = '2566AE677271D6B88B2476BBF923ED88';
+
         $sign_key = $get_send_cache['config']['signKey'];
         $send_third_data = json_decode($get_send_cache['data']['data']);
 
@@ -306,10 +324,8 @@ class Api500EasyPayService
         // 第三方call back 訊息存入redis , 發通知給後台接口
         dispatch((new SendCallBackToAdmin($base_id, $call_back))
             ->onQueue('send_call_back_to_admin'));
-        // TODO: 是否重複發送, 如何回覆給第三方已接收？
-        
-        //dd(0);
-        return 'success 0';
+            
+        return 0;
 
     }
     // TODO: 查帳 缺第三方url

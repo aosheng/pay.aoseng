@@ -26,8 +26,6 @@ class SendCallBackToAdmin implements ShouldQueue
      */
     public function __construct($base_id, $call_back_data)
     {
-        //dd([$base_id, $call_back_data]);
-        
         $this->base_id = $base_id;
         $this->call_back_data = $call_back_data;
     }
@@ -41,19 +39,6 @@ class SendCallBackToAdmin implements ShouldQueue
     {
         $this->cache_service = $Api500EasyPayCacheService;
         //$this->service = $Api500EasyPayService;
-
-        // 確認是否已發過
-        $check_call_back = $this->cache_service->checkCallBackCache('Api500EasyPay', 'save_call_back', $this->call_back_data['merNo'], $this->call_back_data['orderNum']);
-        
-        if ($check_call_back) {
-            Log::warning('# call_back saved #'
-                . ', [Api500EasyPay_save_call_back]'
-                . ', merNo : ' . $this->call_back_data['merNo']
-                . ', orderNum : ' . $this->call_back_data['orderNum']
-                . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
-            );
-            return false;
-        }
 
         $this->cache_service->saveCallBackCache('Api500EasyPay', 'save_call_back', $this->base_id, $this->call_back_data);
         Log::info('save_call_back cache success: ' 

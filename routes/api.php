@@ -34,22 +34,27 @@ $api->version('v1', [
     $api->get('/user', function(){
         return '123';
     });
-    $api->post('Api500EasyPay', [
-        'as' => 'Api500EasyPay.index',
-        'uses' => 'Api500EasyPayController@index',
-    ]);
+    // 500EasyPay 
+    // $api->post('Api500EasyPay', [
+    //     'as' => 'Api500EasyPay.index',
+    //     'uses' => 'Api500EasyPayController@index',
+    // ]);
+    
     $api->post('Api500EasyPay/store', [
         'as' => 'Api500EasyPay.store',
         'uses' => 'Api500EasyPayController@store',
     ]);
-    $api->post('Api500EasyPay/check', [
-        'as' => 'Api500EasyPay.check',
-        'uses' => 'Api500EasyPayController@check',
-    ]);
-    $api->any('Api500EasyPay/pay_callback', [
+    // $api->post('Api500EasyPay/check', [
+    //     'as' => 'Api500EasyPay.check',
+    //     'uses' => 'Api500EasyPayController@check',
+    // ]);
+    $api->post('Api500EasyPay/pay_callback', [
         'as' => 'Api500EasyPay.pay_call_back',
         'uses' => 'Api500EasyPayController@pay_call_back',
     ]);
+
+
+
 });
 
 

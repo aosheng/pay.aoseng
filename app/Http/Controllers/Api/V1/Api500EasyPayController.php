@@ -16,11 +16,6 @@ class Api500EasyPayController extends BaseController
         $this->payService = $Api500EasyPayService;
     }
 
-    public function index() 
-    {
-        return 'test';
-    }
-
     public function store(Request $request)
     {   
         //Log::info('get request = ' . print_r($request->all(), true));   
