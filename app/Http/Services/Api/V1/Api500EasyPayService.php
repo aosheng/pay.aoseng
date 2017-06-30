@@ -23,11 +23,12 @@ class Api500EasyPayService
     {
         require_once(base_path() . '/resources/ThirdPay/500EasyPay/Util.php');
         require_once(base_path() . '/resources/ThirdPay/500EasyPay/json.php');
+        require_once(base_path() . '/resources/ThirdPay/500EasyPay/Des3.class.php');
         // 時區設置會影響第三方判斷訂單正確性
         date_default_timezone_set("PRC");
         $this->cache_service = $Api500EasyPayCacheService;
         $this->services_json = new \Services_JSON();
-        $this->util = new \util();
+        $this->util = new \util();        
     }
 
     public function send($params)
@@ -106,6 +107,58 @@ class Api500EasyPayService
             $base_id,
             self::GETQRCODETIMES
         );
+    }
+    
+    // TODO: 代付 目前已关闭
+    public function send_to_pay($params)
+    {
+        $params = json_decode($params);
+        dd($params);
+        $des = new \DES3($params->config->encKey);
+
+        $to_pay['version'] = $params->to_pay->version;
+        $to_pay['merNo'] = $params->config->merNo;            
+        $to_pay['orderNum'] = $params->to_pay->orderNum;
+        $to_pay['amount'] =  $des->encrypt($params->to_pay->amount * 100);
+        $to_pay['bankCode'] =  $params->to_pay->bankCode;
+        $to_pay['bankAccountName'] = $des->encrypt($params->to_pay->bankAccountName);
+        $to_pay['bankAccountNo'] = $des->encrypt($params->to_pay->bankAccountNo);
+        $to_pay['charset'] = 'utf-8';
+        $to_pay['callBackUrl'] = 'http://' . $_SERVER['HTTP_HOST'] . '/api/Api500EasyPay/to_pay_callback';
+        ksort($to_pay);
+
+        $sign = md5($this->util->json_encode($to_pay) . $config['signKey']); #生成签名
+        $to_pay['sign'] = strtoupper($sign); #设置签名
+		$data = $this->util->json_encode($to_pay); #将数组转换为JSON格式
+
+        Log::info('通知地址：' . $pay['callBackUrl']);
+		Log::info('提交代付订单：' . $pay['orderNum']);
+		$post = array('data' => $data);
+		$return = self::curl_post($config['remitUrl'], $post); #提交订单数据
+        $row = $json->decode($return); #将返回json数据转换为数组
+		
+        if ($row['stateCode'] !== '00'){
+			 Log::info('系统错误,错误号：' . $row['stateCode'] . '错误描述：' . $row['msg']);
+			echo '系统维护中.';
+			exit();
+		} else {
+			if (is_sign($row,$config['signKey'])){ #验证返回签名数据
+				if ($row['stateCode'] == '00'){
+					$stateCode = $row['stateCode'];
+ 					$msg = $row['msg'];
+ 					$orderNum = $row['orderNum'];
+ 					$amount = $row['amount'];
+ 					$amount = $amount / 100;
+ 					$string = '创建代付成功!订单号：' . $orderNum . ' 系统消息：' . $msg . ' 代付金额：' . $amount;
+					Log::info($string);			
+					echo $string;
+					exit();
+				}
+			}else{
+			    Log::info('返回签名验证失败!');
+			}
+			
+		}
     }
 
     public function getResponseQrcode($tags, $type, $base_id, $i)
@@ -293,16 +346,6 @@ class Api500EasyPayService
         Log::info('# query status #' . print_r($status, true));
     }
 
-    // TODO: 代付
-    public function remit()
-    {
-
-    }
-    // TODO: 代付callback
-    public function remit_callback()
-    {
-
-    }
     // TODO: 改用Guzzle, PHP HTTP client 
     private function curl_post($url, $data)
     {
