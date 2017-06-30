@@ -174,20 +174,20 @@ class Api500EasyPayService
 
     public function pay_call_back($params)
     {
-        //$params = json_decode($params);
+        $params = json_decode($params);
 
         $base_id = $this->cache_service->getCallBackWaitCache(
             self::PAYMENTSERVICE,
             'call_back_wait',
-            $params['merNo'],
-            $params['orderNum']
+            $params->merNo,
+            $params->orderNum
         );
 
         if (!$base_id) {
             Log::warning('# base_id null #'
                 . '[' . self::PAYMENTSERVICE . '_call_back_wait]'
-                . 'merNo' .  $params['merNo']
-                . 'orderNum' . $params['orderNum']
+                . 'merNo' .  $params->merNo
+                . 'orderNum' . $params->orderNum
             );
             return false;
         }
@@ -203,13 +203,13 @@ class Api500EasyPayService
         //$sign_key = '2566AE677271D6B88B2476BBF923ED88';
         $sign_key = $get_send_cache['config']['signKey'];
         
-        $call_back['merNo'] = $params['merNo'];
-        $call_back['netway'] = $params['netway'];
-        $call_back['orderNum'] = $params['orderNum'];
-        $call_back['amount'] = $params['amount'];
-        $call_back['goodsName'] = $params['goodsName'];
-        $call_back['payResult'] = $params['payResult'];
-        $call_back['payDate'] = $params['payDate'];
+        $call_back['merNo'] = $params->merNo;
+        $call_back['netway'] = $params->netway;
+        $call_back['orderNum'] = $params->orderNum;
+        $call_back['amount'] = $params->amount;
+        $call_back['goodsName'] = $params->goodsName;
+        $call_back['payResult'] = $params->payResult;
+        $call_back['payDate'] = $params->payDate;
 
         ksort($call_back);
         // 生成签名
