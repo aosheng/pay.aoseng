@@ -219,7 +219,7 @@ class Api500EasyPayService
             ->onQueue('send_call_back_to_admin'));
         // TODO: 是否重複發送, 如何回覆給第三方已接收？
         
-        dd(0);
+        //dd(0);
         return 'success 0';
 
     }

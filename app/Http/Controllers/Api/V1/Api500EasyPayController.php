@@ -79,8 +79,8 @@ class Api500EasyPayController extends BaseController
         $params['payDate'] = '20170629033404';
         $params['sign'] = '495EF976F0F3DCB9919CA294DAFD74DC'; 
         
-        $params = json_encode($params);
-        //$params = json_encode($request->all());
+        //$params = json_encode($params);
+        $params = json_encode($request->all());
 
         Log::info('get request = ' . print_r($params, true));
         
