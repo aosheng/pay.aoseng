@@ -230,7 +230,6 @@ class Api500EasyPayService
         // $params = json_decode($params); # test
         $params = json_decode($params['data']);
         
-
         Log::info('params =>' . print_r($params, true));
         $base_id = $this->cache_service->getCallBackWaitCache(
             self::PAYMENTSERVICE,
@@ -269,7 +268,18 @@ class Api500EasyPayService
         Log::info('# get_send_cache # ' . print_r($get_send_cache, true));
         //$sign_key = '2566AE677271D6B88B2476BBF923ED88';
         $sign_key = $get_send_cache['config']['signKey'];
-        
+        $send_third_data = json_decode($get_send_cache['data']['data']);
+
+        if ($send_third_data->amount != $params->amount) {
+            Log::warning('# 金額不符 #'
+                . '[' . self::PAYMENTSERVICE . '_send]'
+                . ', send_third_data = ' . $send_third_data->amount
+                . ', call back params = ' . $params->amount
+                . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
+            );
+            return false;
+        } 
+
         $call_back['merNo'] = $params->merNo;
         $call_back['netway'] = $params->netway;
         $call_back['orderNum'] = $params->orderNum;
