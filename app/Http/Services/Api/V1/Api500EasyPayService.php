@@ -12,7 +12,7 @@ class Api500EasyPayService
 {
     use Helpers;
 
-    protected $third = ['WX', 'ZFB'];
+    protected $third = ['WX', 'ZFB', 'ZFB_WAP'];
 
     const GETQRCODETIMES = 8;
     const PAYMENTSERVICE = 'Api500EasyPay';
@@ -174,8 +174,8 @@ class Api500EasyPayService
 
     public function pay_call_back($params)
     {
-        $params = json_decode($params); # test
-        //$params = json_decode($params['data']);
+        // $params = json_decode($params); # test
+        $params = json_decode($params['data']);
         
 
         Log::info('params =>' . print_r($params, true));
@@ -185,7 +185,7 @@ class Api500EasyPayService
             $params->merNo,
             $params->orderNum
         );
-        //$base_id = 'Api500EasyPay_5954c5e904895';
+
         if (!$base_id) {
             Log::warning('# base_id null #'
                 . '[' . self::PAYMENTSERVICE . '_call_back_wait]'
@@ -226,9 +226,8 @@ class Api500EasyPayService
         $call_back['payDate'] = $params->payDate;
 
         ksort($call_back);
-        // 生成签名 test
-        $call_back['sign'] =  strtoupper(md5($this->util->json_encode($call_back) . $sign_key));
-        //$call_back['sign'] = $params->sign;
+
+        $call_back['sign'] = $params->sign;
 
         // 验证返回签名数据
         if (!self::is_sign($call_back, $sign_key)) { 
