@@ -175,7 +175,7 @@ class Api500EasyPayService
     public function pay_call_back($params)
     {
         $params = json_decode($params['data']);
-        
+
         Log::info('params =>' . print_r($params, true));
         $base_id = $this->cache_service->getCallBackWaitCache(
             self::PAYMENTSERVICE,
@@ -183,12 +183,13 @@ class Api500EasyPayService
             $params->merNo,
             $params->orderNum
         );
-
+        $base_id = 'Api500EasyPay_5954c5e904895';
         if (!$base_id) {
             Log::warning('# base_id null #'
                 . '[' . self::PAYMENTSERVICE . '_call_back_wait]'
-                . 'merNo' .  $params->merNo
-                . 'orderNum' . $params->orderNum
+                . ', merNo' .  $params->merNo
+                . ', orderNum' . $params->orderNum
+                . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
             );
             return false;
         }
