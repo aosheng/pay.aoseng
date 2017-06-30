@@ -179,8 +179,8 @@ class Api500EasyPayService
         $base_id = $this->cache_service->getCallBackWaitCache(
             self::PAYMENTSERVICE,
             'call_back_wait',
-            $params->merNo,
-            $params->orderNum
+            $params->data->merNo,
+            $params->data->orderNum
         );
         // 取send的資料 拿sign_key
         $get_send_cache = $this->cache_service->getSendCache(
@@ -191,13 +191,13 @@ class Api500EasyPayService
         //$sign_key = '2566AE677271D6B88B2476BBF923ED88';
         $sign_key = $get_send_cache['config']['signKey'];
         
-        $call_back['merNo'] = $params->merNo;
-        $call_back['netway'] = $params->netway;
-        $call_back['orderNum'] = $params->orderNum;
-        $call_back['amount'] = $params->amount;
-        $call_back['goodsName'] = $params->goodsName;
-        $call_back['payResult'] = $params->payResult;
-        $call_back['payDate'] = $params->payDate;
+        $call_back['merNo'] = $params->data->merNo;
+        $call_back['netway'] = $params->data->netway;
+        $call_back['orderNum'] = $params->data->orderNum;
+        $call_back['amount'] = $params->data->amount;
+        $call_back['goodsName'] = $params->data->goodsName;
+        $call_back['payResult'] = $params->data->payResult;
+        $call_back['payDate'] = $params->data->payDate;
 
         ksort($call_back);
         // 生成签名
