@@ -28,7 +28,7 @@ class Api500EasyPayService
         date_default_timezone_set("PRC");
         $this->cache_service = $Api500EasyPayCacheService;
         $this->services_json = new \Services_JSON();
-        $this->util = new \util();        
+        $this->util = new \util();
     }
 
     public function send($params)
@@ -142,7 +142,7 @@ class Api500EasyPayService
 			exit();
 		} else {
 			if (is_sign($row,$config['signKey'])){ #验证返回签名数据
-				if ($row['stateCode'] == '00'){
+				if ($row['stateCode'] == '00') {
 					$stateCode = $row['stateCode'];
  					$msg = $row['msg'];
  					$orderNum = $row['orderNum'];
@@ -182,7 +182,7 @@ class Api500EasyPayService
 
         return (isset($get_qrcode['qrcodeUrl']))
             ? $get_qrcode['qrcodeUrl']
-            : 'error :' . $get_qrcode['stateCode'] . 'msg : ' . $get_qrcode['msg'];
+            : 'Error code : ' . $get_qrcode['stateCode'] . ', Error msg : ' . $get_qrcode['msg'];
     }
 
     public function pay($url, $data, $sign_key, $base_id)
@@ -459,6 +459,9 @@ class Api500EasyPayService
     }
     // 效验服务器返回数据
     private function is_sign($row, $signKey) { 
+        if (!isset($row['sign'])) {
+            return false;
+        }
         // 保留签名数据
         $r_sign = $row['sign'];
         $arr = array();
