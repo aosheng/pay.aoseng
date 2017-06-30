@@ -176,10 +176,10 @@ class Api500EasyPayService
     {
         $params = $params['data'];
 
-        Log::info('params' . print_r($params, true));
+        Log::info('params =>' . print_r($params, true));
 
-        Log::info('params->merNo' . print_r($params['merNo'], true));
-        
+        Log::info('params->merNo =>' . print_r($params->merNo, true));
+
         $base_id = $this->cache_service->getCallBackWaitCache(
             self::PAYMENTSERVICE,
             'call_back_wait',
