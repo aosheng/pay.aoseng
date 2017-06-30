@@ -121,7 +121,7 @@ class Api500EasyPayCacheService
             . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
         );
         // 這做法要再想想(移出去?)
-        if ($data['stateCode'] == 00) {
+        if ($data['stateCode'] === '00') {
             self::setCallBackWaitCache(
                 $tags,
                 'call_back_wait',
