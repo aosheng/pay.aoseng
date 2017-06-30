@@ -7,7 +7,7 @@ use Log;
 
 class Api500EasyPayCacheService
 {
-    const SURVIVAL_TIME = 20;
+    const SURVIVAL_TIME = 1440;
     
     public function __construct()
     {
