@@ -174,7 +174,7 @@ class Api500EasyPayService
 
     public function pay_call_back($params)
     {
-        $params = $params['data'];
+        //$params = $params['data'];
 
         $base_id = $this->cache_service->getCallBackWaitCache(
             self::PAYMENTSERVICE,
