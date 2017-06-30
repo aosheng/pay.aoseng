@@ -61,6 +61,7 @@ class SendCallBackToAdmin implements ShouldQueue
             . ', call_back_data = ' . print_r($this->call_back_data, true)
             . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
         );
+        // TODO: 刪掉 setCallBackWaitCache 寫入的key
 
         // TODO: 通知後台更新
     }

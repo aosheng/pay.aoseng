@@ -8,7 +8,6 @@ use Log;
 class Api500EasyPayCacheService
 {
     const SURVIVAL_TIME = 20;
-    const LIMIT = 50;
     
     public function __construct()
     {
@@ -38,9 +37,7 @@ class Api500EasyPayCacheService
 
     public function setMerNoOrdeNum($tags, $type, $data, $base_id)
     {
-        //var_dump(json_decode($data['data']['data']));
         $order_data = json_decode($data['data']['data']);
-        // 設置 base_id 的 商號 + 訂單 對照
         Redis::set(
             $tags . '_' . $type . '_' . $data['config']['merNo'] . '_' .  $order_data->orderNum,
             $base_id
@@ -54,7 +51,7 @@ class Api500EasyPayCacheService
         $return_data = [];
 
         if (!$tasks) {
-            Log::info('# getCache tasks null #' 
+            Log::info('# getCache tasks null #'
                 . ', [' . $tags . ']'
                 . ', type = ' . $type
                 . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
@@ -96,7 +93,7 @@ class Api500EasyPayCacheService
     }
 
     public function setSendCache($tags, $type, $base_id, $data)
-    {     
+    {
         Redis::rpush($tags . '_' . $type, $base_id);
         Cache::store('redis')
             ->tags([$tags . '_' . $type])
@@ -111,7 +108,7 @@ class Api500EasyPayCacheService
     }
     
     public function setResponseCache($tags, $type, $base_id, $data)
-    {   
+    {
         Redis::rpush($tags . '_' . $type, $base_id);
         Cache::store('redis')
             ->tags([$tags . '_' . $type])
@@ -123,26 +120,19 @@ class Api500EasyPayCacheService
             . ', data = ' . print_r($data, true) 
             . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
         );
+        // 這做法要再想想(移出去?)
+        self::setCallBackWaitCache(
+            $tags,
+            'call_back_wait',
+            $base_id,
+            $data
+        );
 
-        self::setCallBackWaitCache($tags, 'call_back_wait', $base_id, $data);
         Log::info('# setCallBackWaitCache #' 
             . ', ['. $tags . '_call_back_wait]' 
             . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
         );
-
     }
-
-    public function setCallBackWaitCache($tags, $type, $base_id, $data)
-    {
-        if (!$data) {
-            return false;
-        }
-        Redis::rpush($tags . '_' . $type, $data['merNo'] . '_' . $data['orderNum']);
-        
-        Cache::store('redis')
-            ->tags([$tags . '_' . $type])
-            ->add($data['merNo'] . '_' . $data['orderNum'], $base_id, self::SURVIVAL_TIME);
-        }
 
     public function saveCallBackCache($tags, $type, $base_id, $data)
     {
@@ -184,18 +174,17 @@ class Api500EasyPayCacheService
     {
         return Redis::Get($tags . '_' . $type . '_' . $merNo . '_' . $orderNum);
     }
-
-    public function toGetResponseQrcode($tags, $type, $base_id)
+    // TODO exception    
+    public function getResponseQrcode($tags, $type, $base_id)
     {
         return Cache::store('redis')
             ->tags([$tags . '_' . $type])
             ->get($base_id);
     }
-
+    // TODO exception    
     public function deleteListCache($tags, $type, $base_id)
     {
-        //Redis::lpop($tags . '_' . $type);
-        $is_delete = Redis::LREM($tags . '_' . $type, 0, $base_id); 
+        $is_delete = Redis::LREM($tags . '_' . $type, 0, $base_id);
         Log::info('# delete list #'
             . ', is_delete = ' . $is_delete
             . ', [' . $tags . '_' . $type .']'
@@ -203,13 +192,13 @@ class Api500EasyPayCacheService
             . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
         );
     }
-
+    // TODO exception
     public function deleteTagsCache($tags, $type, $base_id)
     {
         if (!$type) {
             $is_delete_tags = Cache::store('redis')
                 ->tags([$tags])
-                ->forget($base_id);    
+                ->forget($base_id);
         } else {
             $is_delete_tags = Cache::store('redis')
                 ->tags([$tags. '_' . $type])
@@ -222,5 +211,13 @@ class Api500EasyPayCacheService
             . ', base_id = ' . $base_id 
             . ', FILE = '. __FILE__ . 'LINE:' . __LINE__
         );
+    }
+
+    private function setCallBackWaitCache($tags, $type, $base_id, $data)
+    {
+        Redis::rpush($tags . '_' . $type, $data['merNo'] . '_' . $data['orderNum']);
+        Cache::store('redis')
+            ->tags([$tags . '_' . $type])
+            ->add($data['merNo'] . '_' . $data['orderNum'], $base_id, self::SURVIVAL_TIME);
     }
 }
