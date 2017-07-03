@@ -179,10 +179,11 @@ class Api500EasyPayService
             $get_qrcode['stateCode'] = self::ERRORCODE;
             $get_qrcode['msg'] = self::ERRORMSG;
         }
-
-        return (isset($get_qrcode['qrcodeUrl']))
-            ? $get_qrcode['qrcodeUrl']
-            : 'error :' . $get_qrcode['stateCode'] . 'msg : ' . $get_qrcode['msg'];
+        
+        return $get_qrcode;
+        // return (isset($get_qrcode['qrcodeUrl']))
+        //     ? $get_qrcode['qrcodeUrl']
+        //     : 'error :' . $get_qrcode['stateCode'] . 'msg : ' . $get_qrcode['msg'];
     }
 
     public function pay($url, $data, $sign_key, $base_id)
