@@ -1,14 +1,5 @@
 [
   {
-    "group": "500EasyPay",
-    "type": "",
-    "url": "",
-    "version": "0.0.0",
-    "filename": "app/Http/Controllers/Api/V1/Api500EasyPayController.php",
-    "groupTitle": "500EasyPay",
-    "name": ""
-  },
-  {
     "type": "POST",
     "url": "/api/Api500EasyPay/store",
     "title": "/api/Api500EasyPay/store",
