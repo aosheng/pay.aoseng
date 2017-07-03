@@ -15,3 +15,7 @@ Route::get('/', function () {
 });
 
 Route::get('logs', '\Rap2hpoutre\LaravelLogViewer\LogViewerController@index');
+
+Route::get('apidoc', function () {
+    return File::get(public_path() . '/apidoc/index.html');
+});
