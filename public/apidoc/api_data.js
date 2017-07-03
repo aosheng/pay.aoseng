@@ -234,5 +234,97 @@ define({ "api": [
         }
       ]
     }
+  },
+  {
+    "type": "POST",
+    "url": "/api/Api500EasyPay/pay_callback",
+    "title": "/api/Api500EasyPay/pay_callback",
+    "name": "500EasyPay_callback",
+    "group": "500EasyPay",
+    "version": "1.0.0",
+    "description": "<p>500輕易付 callback 接收付款成功或失敗訊息</p>",
+    "permission": [
+      {
+        "name": "POST"
+      }
+    ],
+    "sampleRequest": [
+      {
+        "url": "http://testpayaosheng.azurewebsites.net/api/Api500EasyPay/pay_callback"
+      }
+    ],
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "json",
+            "optional": false,
+            "field": "data",
+            "description": "<p>第三方回傳訊息</p>"
+          }
+        ],
+        "data": [
+          {
+            "group": "data",
+            "type": "string",
+            "optional": false,
+            "field": "merNo",
+            "description": "<p>商戶號</p>"
+          },
+          {
+            "group": "data",
+            "type": "string",
+            "optional": true,
+            "field": "netway",
+            "description": "<p>WX(微信) 或者 ZFB(支付寶)</p>"
+          },
+          {
+            "group": "data",
+            "type": "string",
+            "optional": false,
+            "field": "orderNum",
+            "description": "<p>商户訂單號</p>"
+          },
+          {
+            "group": "data",
+            "type": "string",
+            "optional": false,
+            "field": "amount",
+            "description": "<p>金额（单位：分）</p>"
+          },
+          {
+            "group": "data",
+            "type": "string",
+            "optional": false,
+            "field": "goodsName",
+            "description": "<p>商品名稱</p>"
+          },
+          {
+            "group": "data",
+            "type": "string",
+            "optional": false,
+            "field": "payResult",
+            "description": "<p>支付状态，00表示成功</p>"
+          },
+          {
+            "group": "data",
+            "type": "string",
+            "optional": false,
+            "field": "payDate",
+            "description": "<p>支付时间，格式：yyyyMMddHHmmss</p>"
+          },
+          {
+            "group": "data",
+            "type": "string",
+            "optional": false,
+            "field": "sign",
+            "description": "<p>签名（字母大写）</p>"
+          }
+        ]
+      }
+    },
+    "filename": "app/Http/Controllers/Api/V1/Api500EasyPayController.php",
+    "groupTitle": "500EasyPay"
   }
 ] });

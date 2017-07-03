@@ -189,7 +189,31 @@ class Api500EasyPayController extends BaseController
 
         $this->payService->pay_check_status($params);
     }
-
+    /**
+     * @apiDefine Data
+     *
+     * @apiParam (data) {string} merNo  商戶號
+     * @apiParam (data) {string} [netway] 支付网关(支付宝填写ZFB,微信填写WX)
+     * @apiParam (data) {string} orderNum 商户訂單號  
+     * @apiParam (data) {string} amount 金额（单位：分）
+     * @apiParam (data) {string} goodsName 商品名稱
+     * @apiParam (data) {string} payResult 支付状态，00表示成功
+     * @apiParam (data) {string} payDate 支付时间，格式：yyyyMMddHHmmss
+     * @apiParam (data) {string} sign 签名（字母大写）
+     */
+    /**
+     * @api {POST} /api/Api500EasyPay/pay_callback /api/Api500EasyPay/pay_callback
+     * @apiName 500EasyPay_callback
+     * @apiGroup 500EasyPay
+     * @apiVersion 1.0.0
+     * @apiDescription 500輕易付 callback 接收付款成功或失敗訊息
+     * @apiPermission POST
+     * @apiSampleRequest http://testpayaosheng.azurewebsites.net/api/Api500EasyPay/pay_callback
+     *
+     * @apiParam {json} data 第三方回傳訊息
+     * @apiUse Data
+     * 
+     */
     public function pay_call_back(Request $request)
     {
         // test params
