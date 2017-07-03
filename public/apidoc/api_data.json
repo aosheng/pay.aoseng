@@ -77,7 +77,7 @@
             "type": "string",
             "optional": false,
             "field": "payUrl",
-            "description": "<p>支付寶或微信地址</p>"
+            "description": "<p>支付地址</p>"
           },
           {
             "group": "config",
@@ -277,7 +277,7 @@
             "type": "string",
             "optional": true,
             "field": "netway",
-            "description": "<p>WX(微信) 或者 ZFB(支付寶)</p>"
+            "description": "<p>支付网关(支付宝填写ZFB,微信填写WX)</p>"
           },
           {
             "group": "data",

@@ -34,7 +34,7 @@ $api->version('v1', [
     $api->get('/user', function(){
         return '123';
     });
-    // 500EasyPay 
+    // 500EasyPay 輕易付
     // $api->post('Api500EasyPay', [
     //     'as' => 'Api500EasyPay.index',
     //     'uses' => 'Api500EasyPayController@index',
@@ -53,6 +53,11 @@ $api->version('v1', [
         'uses' => 'Api500EasyPayController@pay_call_back',
     ]);
 
+    //su_hui_bao 速匯寶
+    $api->post('SuHuiBao/store', [
+        'as' => 'SuHuiBao.store',
+        'uses' => 'SuHuiBao@store',
+    ]);
 
 
 });

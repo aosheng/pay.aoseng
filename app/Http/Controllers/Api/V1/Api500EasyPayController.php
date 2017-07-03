@@ -75,7 +75,7 @@ use Log;
  * @apiParam (config) {string} merNo 商戶號
  * @apiParam (config) {string} signKey MD5密鑰
  * @apiParam (config) {string} encKey 3DES密鑰
- * @apiParam (config) {string} payUrl 支付寶或微信地址
+ * @apiParam (config) {string} payUrl 支付地址
  * @apiParam (config) {string} remitUrl 代付地址
  */
 
@@ -125,27 +125,27 @@ class Api500EasyPayController extends BaseController
     public function store(Request $request)
     {   
         //Log::info('get request = ' . print_r($request->all(), true));   
-        $params['config']['payment'] = 'pay';     
-        $params['config']['merNo'] = 'QYF201705260107';
-        $params['config']['signKey'] = '2566AE677271D6B88B2476BBF923ED88';
-        $params['config']['encKey'] = 'GiWBZqsJ4GYZ8G8psuvAsTo3';
-        $params['config']['payUrl'] = 'http://47.90.116.117:90/api/pay.action';
-        $params['config']['remitUrl'] = 'http://47.90.116.117:90/api/remit.action'; # 目前已关闭
+        // $params['config']['payment'] = 'pay';     
+        // $params['config']['merNo'] = 'QYF201705260107';
+        // $params['config']['signKey'] = '2566AE677271D6B88B2476BBF923ED88';
+        // $params['config']['encKey'] = 'GiWBZqsJ4GYZ8G8psuvAsTo3';
+        // $params['config']['payUrl'] = 'http://47.90.116.117:90/api/pay.action';
+        // $params['config']['remitUrl'] = 'http://47.90.116.117:90/api/remit.action'; # 目前已关闭
 
         // 支付 (ZFB 有时间性会失效, 如有人已刷过无法再给人刷)
-        if ($params['config']['payment'] === 'pay') { 
-            $params['pay']['version'] = 'V2.0.0.0';
-            $params['pay']['merNo'] = $params['config']['merNo']; 
-            $params['pay']['netway'] = 'WX';
-            $params['pay']['random'] = (string) rand(1000,9999);
-            $params['pay']['orderNum'] = date('YmdHis') . rand(1000,9999);
-            $params['pay']['amount'] = '100';
-            $params['pay']['goodsName'] = '测试支付WX';
-            $params['pay']['charset'] = 'utf-8';
-            $params['pay']['callBackUrl'] = 'http://' . $_SERVER['HTTP_HOST'] . '/api/Api500EasyPay/pay_callback';
-            $params['pay']['callBackViewUrl'] = "";
-            $params = json_encode($params);
-            $response_data = $this->payService->send($params);
+        if ($request['config']['payment'] === 'pay') { 
+            $request['pay']['version'] = 'V2.0.0.0';
+            $request['pay']['merNo'] = $request['config']['merNo']; 
+            $request['pay']['netway'] = 'WX';
+            $request['pay']['random'] = (string) rand(1000, 9999);
+            $request['pay']['orderNum'] = date('YmdHis') . rand(1000, 9999);
+            $request['pay']['amount'] = '100';
+            $request['pay']['goodsName'] = '测试支付WX';
+            $request['pay']['charset'] = 'utf-8';
+            $request['pay']['callBackUrl'] = 'http://' . $_SERVER['HTTP_HOST'] . '/api/Api500EasyPay/pay_callback';
+            $request['pay']['callBackViewUrl'] = "";
+            $request = json_encode($request);
+            $response_data = $this->payService->send($request);
             
             if ($response_data['stateCode'] !== '00') {
                 return $this->response->error(json_encode($response_data), 400);
@@ -154,20 +154,20 @@ class Api500EasyPayController extends BaseController
         }
 
         // 代付 
-        if ($params['config']['payment'] === 'to_pay') { 
-            $params['to_pay']['version'] = 'V2.0.0.0';
-            $params['to_pay']['merNo'] = $params['config']['merNo'];            
-            $params['to_pay']['orderNum'] = date('YmdHis') . rand(1000,9999);
-            $params['to_pay']['amount'] = '1';
-            $params['to_pay']['bankCode'] = 'ICBC';
-            $params['to_pay']['bankAccountName'] = '梁铭光';
-            $params['to_pay']['bankAccountNo'] = '6212261405007142466';
-            $params['to_pay']['charset'] = 'utf-8';
-            $params['to_pay']['callBackUrl'] = 'http://' . $_SERVER['HTTP_HOST'] . '/api/Api500EasyPay/to_pay_callback';
-            $params = json_encode($params);
+        // if ($params['config']['payment'] === 'to_pay') { 
+        //     $params['to_pay']['version'] = 'V2.0.0.0';
+        //     $params['to_pay']['merNo'] = $params['config']['merNo'];            
+        //     $params['to_pay']['orderNum'] = date('YmdHis') . rand(1000,9999);
+        //     $params['to_pay']['amount'] = '1';
+        //     $params['to_pay']['bankCode'] = 'ICBC';
+        //     $params['to_pay']['bankAccountName'] = '梁铭光';
+        //     $params['to_pay']['bankAccountNo'] = '6212261405007142466';
+        //     $params['to_pay']['charset'] = 'utf-8';
+        //     $params['to_pay']['callBackUrl'] = 'http://' . $_SERVER['HTTP_HOST'] . '/api/Api500EasyPay/to_pay_callback';
+        //     $params = json_encode($params);
             
-            return $this->payService->send_to_pay($params);
-        }           
+        //     return $this->payService->send_to_pay($params);
+        // }           
     }
     // 缺查帳 url
     public function check(Request $request)
