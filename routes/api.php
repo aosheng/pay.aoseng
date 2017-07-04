@@ -56,8 +56,9 @@ $api->version('v1', [
     //su_hui_bao 速匯寶
     $api->post('SuHuiBao/store', [
         'as' => 'SuHuiBao.store',
-        'uses' => 'SuHuiBao@store',
+        'uses' => 'SuHuiBaoController@store',
     ]);
+
 
 
 });
