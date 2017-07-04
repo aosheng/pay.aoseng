@@ -3,14 +3,23 @@
 namespace App\Http\Controllers\api\V1;
 
 use Illuminate\Http\Request;
-use App\Http\Services\Api\V1\SyHuiBaoService;
+use App\Http\Services\Api\V1\SuHuiBaoService;
 use Log;
-
+/**
+ * Register user
+ *
+ * Register a new user with a `username` and `password`.
+ *
+ * @Post("/")
+ * @Versions({"v1"})
+ * @Request("username=foo&password=bar", contentType="application/x-www-form-urlencoded")
+ * @Response(200, body={"id": 10, "username": "foo"})
+ */
 class SuHuiBaoController extends BaseController
 {
-    public function __construct(SyHuiBaoService $SyHuiBaoService)
+    public function __construct(SuHuiBaoService $SuHuiBaoService)
     {
-        $this->payService = $SyHuiBaoService;
+        $this->payService = $SuHuiBaoService;
     }
 
     public function store(Request $request)

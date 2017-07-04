@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Redis;
 use Log;
 use App\jobs\SendCallBackToAdmin;
 
-class Api500EasyPayService
+class SuHuiBaoService
 {
     public function send($params)
     {
