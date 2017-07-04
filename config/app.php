@@ -175,6 +175,7 @@ return [
         Rap2hpoutre\LaravelLogViewer\LaravelLogViewerServiceProvider::class,
         //Recca0120\LaravelTracy\LaravelTracyServiceProvider::class,
         //L5Swagger\L5SwaggerServiceProvider::class,
+        Mpociot\ApiDoc\ApiDocGeneratorServiceProvider::class,
         
         /*
          * Application Service Providers...
