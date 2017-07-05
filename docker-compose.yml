@@ -63,6 +63,7 @@ services:
       #- memcached:memcached
       - redis:redis
       - mysql:mysql
+      - php-worker:php-worker
       #- postgresql:postgresql
     restart: always
     networks:
@@ -122,6 +123,17 @@ services:
     networks:
       app_net:
         ipv4_address: 172.22.8.50
+
+### PHP Worker Container #####################################
+  php-worker:
+    build: ./Dockerfiles/php-worker
+    hostname: docker-php-worker
+    volumes:
+      - ../:/var/www/html/
+    restart: always
+    networks:
+      app_net:
+        ipv4_address: 172.22.8.70
 
 networks:
   app_net:
