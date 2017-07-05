@@ -1,0 +1,7 @@
+{
+    "name": "Ao Sheng Internet Marketing Pay Api Document",
+    "version": "1.0.0",
+    "description": "Third Pay Input, Call back data, if changed must update. ",
+    "title": "Aosheng apiDoc ",
+    "url": "http://testpayaosheng.azurewebsites.net/api/"
+}

@@ -28,7 +28,7 @@ class Api500EasyPayService
         date_default_timezone_set("PRC");
         $this->cache_service = $Api500EasyPayCacheService;
         $this->services_json = new \Services_JSON();
-        $this->util = new \util();        
+        $this->util = new \util();
     }
 
     public function send($params)
@@ -142,7 +142,7 @@ class Api500EasyPayService
 			exit();
 		} else {
 			if (is_sign($row,$config['signKey'])){ #验证返回签名数据
-				if ($row['stateCode'] == '00'){
+				if ($row['stateCode'] == '00') {
 					$stateCode = $row['stateCode'];
  					$msg = $row['msg'];
  					$orderNum = $row['orderNum'];
@@ -196,33 +196,32 @@ class Api500EasyPayService
             . ', status = ' . print_r($status, true) 
             . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
         );
-        
+ 
         if ($status['stateCode'] !== '00') {
             Log::warning('# 系统错误 #'
                 . ', 错误号: ' . $status['stateCode']
                 . ', 错误描述: ' . $status['msg']
                 . ', FILE = '. __FILE__ . 'LINE:' . __LINE__
             );
-            return $status;
         }
         
-        if (!self::is_sign($status, $sign_key)) { #验证返回签名数据
+        if (!self::is_sign($status, $sign_key)
+            && $status['stateCode'] === '00') { #验证返回签名数据
             Log::warning('# 返回签名验证失败! #' . 'FILE = ' . __FILE__ . 'LINE:' . __LINE__);
-            return $status;
+            $status['stateCode'] = '999';
+            $status['msg'] = '返回签名验证失败';
         }
+        // 再想想要不要包進cache_service？
+        $this->cache_service->setResponseCache(self::PAYMENTSERVICE, 'response_get_qrcode', $base_id, $status);
+        $this->cache_service->deleteListCache(self::PAYMENTSERVICE, 'input_base_id', $base_id);
+        $this->cache_service->deleteTagsCache(self::PAYMENTSERVICE, '', $base_id);
+   
+        Log::info('# get qrcode status #' 
+            . ', status = ' . print_r($status, true) 
+            . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
+        );
 
-        if ($status['stateCode'] == '00') {
-            Log::info('# get qrcode info #' 
-                . ', status = ' . print_r($status, true) 
-                . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
-            );
-            // 再想想要不要包進cache_service？
-            $this->cache_service->setResponseCache(self::PAYMENTSERVICE, 'response_get_qrcode', $base_id, $status);
-            $this->cache_service->deleteListCache(self::PAYMENTSERVICE, 'input_base_id', $base_id);
-            $this->cache_service->deleteTagsCache(self::PAYMENTSERVICE, '', $base_id);
-        }
-
-        return  $status;
+        return $status;
     }
 
     public function pay_call_back($params)
@@ -461,6 +460,9 @@ class Api500EasyPayService
     }
     // 效验服务器返回数据
     private function is_sign($row, $signKey) { 
+        if (!isset($row['sign'])) {
+            return false;
+        }
         // 保留签名数据
         $r_sign = $row['sign'];
         $arr = array();
