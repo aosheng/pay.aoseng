@@ -99,6 +99,7 @@ services:
       #- memcached:memcached
       - redis:redis
       - mysql:mysql
+      - php-worker:php-worker
       #- postgresql:postgresql
     extra_hosts:
       - localhost:172.22.8.50
