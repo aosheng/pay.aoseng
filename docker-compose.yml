@@ -99,7 +99,7 @@ services:
       #- memcached:memcached
       - redis:redis
       - mysql:mysql
-      - php-worker:php-worker
+      #- php-worker:php-worker
       #- postgresql:postgresql
     extra_hosts:
       - localhost:172.22.8.50
@@ -131,6 +131,8 @@ services:
     hostname: docker-php-worker
     volumes:
       - ../:/var/www/html/
+    links:
+      - fpm-php70:fpm  
     restart: always
     networks:
       app_net:
