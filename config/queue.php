@@ -59,9 +59,9 @@ return [
 
         'redis' => [
             'driver' => 'redis',
-            'connection' => 'default',
+            'connection' => 'aosheng_queue',
             'queue' => 'default',
-            'retry_after' => 90,
+            'retry_after' => 60,
         ],
 
     ],
