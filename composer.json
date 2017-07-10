@@ -10,6 +10,7 @@
         "dingo/api": "1.0.x@dev",
         "doctrine/dbal": "^2.5",
         "frozennode/administrator": "5.*",
+        "guzzlehttp/guzzle": "^6.3",
         "laravel/framework": "5.4.*",
         "laravel/tinker": "~1.0",
         "monolog/monolog": "^1.15",
