@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\Redis;
 use App\Http\Services\Cache\Api500EasyPayCacheService;
 use Log;
 use App\jobs\SendCallBackToAdmin;
+use GuzzleHttp\Client;
+use GuzzleHttp\Exception\ClientException;
 
 class Api500EasyPayService
 {
@@ -189,7 +191,7 @@ class Api500EasyPayService
     public function pay($url, $data, $sign_key, $base_id)
     {
         $is_return_data = [];
-        $is_return_data = $this->curl_post($url, $data);
+        $is_return_data = $this->guzzle_http($url, $data);
         // 将返回json数据转换为数组
         $status = $this->services_json->decode($is_return_data); 
         Log::info('# pay status #'
@@ -372,25 +374,37 @@ class Api500EasyPayService
         Log::info('# query status #' . print_r($status, true));
     }
 
-    // TODO: 改用Guzzle, PHP HTTP client 
-    private function curl_post($url, $data)
+    private function guzzle_http($url, $data) 
     {
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, FALSE);
-        curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (compatible; MSIE 5.01; Windows NT 5.0)');
-        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
-        curl_setopt($ch, CURLOPT_AUTOREFERER, 1);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        $tmpInfo = curl_exec($ch);
+        Log::info('# guzzle_http start #' 
+            . ', url =' . print_r($url, true) 
+            . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
+        );
 
-        if (curl_errno($ch)) {
-            return curl_error($ch);
+        $client = new \GuzzleHttp\Client();
+        $handlers['User-Agent'] = 'Mozilla/5.0 (compatible; MSIE 5.01; Windows NT 5.0)';
+        $handlers['allow_redirects'] = false;
+        $handlers['Content-Type'] = 'application/json';
+        $handlers['http_errors'] = false;
+
+        $options['handlers'] = $handlers;
+        $options['form_params'] = $data;
+        
+        try {
+            $res = $client->post($url, $options);
+            Log::info('# guzzle_http end #' 
+                . 'getBody = ' . $res->getBody()
+                . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
+                
+            );
+        } catch (\GuzzleHttp\Exception\ClientException $exception) {
+            Log::error('# guzzle_http end #' 
+                . ', getRequest = ' . $exception->getRequest()
+                . ', getResponse = ' . $exception->getResponse()
+                . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
+            );
         }
-        return $tmpInfo;
+        return $res->getBody();
     }
 
     // 以下为检查动作
