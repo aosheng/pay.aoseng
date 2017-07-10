@@ -124,13 +124,14 @@ class Api500EasyPayController extends BaseController
 
     public function store(Request $request)
     {   
-        //Log::info('get request = ' . print_r($request->all(), true));   
-        // $params['config']['payment'] = 'pay';     
-        // $params['config']['merNo'] = 'QYF201705260107';
-        // $params['config']['signKey'] = '2566AE677271D6B88B2476BBF923ED88';
-        // $params['config']['encKey'] = 'GiWBZqsJ4GYZ8G8psuvAsTo3';
-        // $params['config']['payUrl'] = 'http://47.90.116.117:90/api/pay.action';
-        // $params['config']['remitUrl'] = 'http://47.90.116.117:90/api/remit.action'; # 目前已关闭
+        //Log::info('get request = ' . print_r($request->all(), true)); 
+        $request = '';  
+        $request['config']['payment'] = 'pay';     
+        $request['config']['merNo'] = 'QYF201705260107';
+        $request['config']['signKey'] = '2566AE677271D6B88B2476BBF923ED88';
+        $request['config']['encKey'] = 'GiWBZqsJ4GYZ8G8psuvAsTo3';
+        $request['config']['payUrl'] = 'http://47.90.116.117:90/api/pay.action';
+        $request['config']['remitUrl'] = 'http://47.90.116.117:90/api/remit.action'; # 目前已关闭
 
         // 支付 (ZFB 有时间性会失效, 如有人已刷过无法再给人刷)
         if ($request['config']['payment'] === 'pay') { 
