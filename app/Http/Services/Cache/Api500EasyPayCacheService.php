@@ -8,6 +8,7 @@ use Log;
 class Api500EasyPayCacheService
 {
     const SURVIVAL_TIME = 1440;
+    const SENDLISTLIMIT = 200;
     
     public function __construct()
     {
@@ -105,6 +106,11 @@ class Api500EasyPayCacheService
             . ', data = ' . print_r($data, true) 
             . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
         );
+    }
+
+    public function getSendListCache($tags, $type)
+    {
+        return $tasks = Redis::lrange($tags . '_' . $type, 0, self::SENDLISTLIMIT);
     }
     
     public function setResponseCache($tags, $type, $base_id, $data)
