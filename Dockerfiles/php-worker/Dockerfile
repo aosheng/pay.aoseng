@@ -20,6 +20,7 @@ MAINTAINER Mahmoud Zalt <mahmoud@zalt.me>
 # Make sure you rebuild your container with every change.
 #
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY supervisord_redis_action.ini /etc/supervisor/conf.d/supervisord_redis_action.ini
 
 #
 #--------------------------------------------------------------------------
