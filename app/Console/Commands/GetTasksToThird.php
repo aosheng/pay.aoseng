@@ -47,7 +47,6 @@ class GetTasksToThird extends Command
      */
     public function handle()
     {
-        //todo get redis input data to send order
         $task_data = $this->cache_service->getCache($this->tags, 'input_base_id');
        
         Log::info('# Tothird:GetTasksToThird start #' 
