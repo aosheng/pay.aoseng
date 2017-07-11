@@ -18,6 +18,7 @@ class CreateEasyPaySendTable extends Migration
             $table->string('sCorpCode', 32)->comment('盤口');
             $table->string('sOrderID', 32)->comment('盤口訂單編號');
             $table->string('iUserKey', 32)->comment('盤口用戶ID');
+            $table->string('payment', 32)->comment('付款類型');
 
             $table->string('base_id', 32)->comment('only key link cache'); # cache base id
             // config
@@ -49,6 +50,6 @@ class CreateEasyPaySendTable extends Migration
      */
     public function down()
     {
-        Schema::drop('500_easy_pay_send');
+        Schema::drop('easy_pay_send');
     }
 }

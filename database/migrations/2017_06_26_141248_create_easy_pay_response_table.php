@@ -35,6 +35,6 @@ class CreateEasyPayResponseTable extends Migration
      */
     public function down()
     {
-        Schema::drop('500_easy_pay_response');
+        Schema::drop('easy_pay_response');
     }
 }
