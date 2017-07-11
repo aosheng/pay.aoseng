@@ -55,6 +55,11 @@ class Api500EasyPayService
         }
         
         $config = array(
+            'sCorpCode' => $params->config->sCorpCode,  
+            'sOrderID' => $params->config->sOrderID,
+            'iUserKey' => $params->config->iUserKey,
+            'payment' => $params->config->payment,
+
             'merNo' => $params->config->merNo,         #商户号 'qyf201705200001'	
             'signKey' => $params->config->signKey,      #MD5密钥 'AiYLumB03Fingt3R3ULdvFzS'
             'encKey' => $params->config->encKey,        #3DES密钥 'DNSow6CK0MIUUEJrNIziQ1Pm'
@@ -410,28 +415,48 @@ class Api500EasyPayService
     // 以下为检查动作
     private function config_parames_check($config)
     {
-		if ($config['merNo'] == '') {
-			Log::error('请配置商户号.. config.php。');
+		if ($config['sCorpCode'] == '') {
+            Log::error('请配置盤口号.. config');
+        	return false;
+		}
+
+        if ($config['sOrderID'] == '') {
+            Log::error('请配置訂單号.. config');
+			return false;
+		}
+
+        if ($config['iUserKey'] == '') {
+            Log::error('请配置UserKey.. config');
+			return false;
+		}
+
+        if ($config['payment'] == '') {
+            Log::error('请配置商户号.. config');
+			return false;
+		}
+        
+        if ($config['merNo'] == '') {
+			Log::error('请配置商户号.. config');
 			return false;
 		}
 		
 		if ($config['signKey'] == '') {
-			Log::error('请配置MD5密钥.. config.php。');
+			Log::error('请配置MD5密钥.. config');
 			return false;
 		}
 		
 		if ($config['encKey'] == '') {
-			Log::error('请配置3DES密钥.. config.php。');
+			Log::error('请配置3DES密钥.. config');
 			return false;
 		}
 		
 		if ($config['payUrl'] == '') {
-			Log::error('请配置支付接口.. config.php。');
+			Log::error('请配置支付接口.. config');
 			return false;
 		}
 		
 		if ($config['remitUrl'] == '') {
-			Log::error('请配置代付接口.. config.php。');
+			Log::error('请配置代付接口.. config');
 			return false;
 		}
 

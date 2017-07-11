@@ -126,6 +126,10 @@ class Api500EasyPayController extends BaseController
     {   
         //Log::info('get request = ' . print_r($request->all(), true)); 
         $request = '';  
+        $request['config']['sCorpCode'] = 'K001';
+        $request['config']['sOrderID'] = date('YmdHis'); 
+        $request['config']['iUserKey'] = 'Test123'; 
+
         $request['config']['payment'] = 'pay';     
         $request['config']['merNo'] = 'QYF201705260107';
         $request['config']['signKey'] = '2566AE677271D6B88B2476BBF923ED88';
