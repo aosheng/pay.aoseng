@@ -29,5 +29,6 @@ class AppServiceProvider extends ServiceProvider
 	    }
         $this->app->register(\Mpociot\ApiDoc\ApiDocGeneratorServiceProvider::class);
         //$this->app->register(\L5Swagger\L5SwaggerServiceProvider::class);
+        $this->app->register(\Sentry\SentryLaravel\SentryLaravelServiceProvider::class);
     }
 }
