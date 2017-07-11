@@ -18,7 +18,8 @@
         "nesbot/carbon": "~1.18",
         "predis/predis": "^1.1",
         "rap2hpoutre/laravel-log-viewer": "^0.10.3",
-        "recca0120/laravel-tracy": "^1.8.7"
+        "recca0120/laravel-tracy": "^1.8.7",
+        "sentry/sentry-laravel": "^0.7.0"
     },
     "require-dev": {
         "fzaninotto/faker": "~1.4",
