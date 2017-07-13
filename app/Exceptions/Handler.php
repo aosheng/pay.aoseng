@@ -14,12 +14,12 @@ class Handler extends ExceptionHandler
      * @var array
      */
     protected $dontReport = [
-        // \Illuminate\Auth\AuthenticationException::class,
-        // \Illuminate\Auth\Access\AuthorizationException::class,
-        // \Symfony\Component\HttpKernel\Exception\HttpException::class,
-        // \Illuminate\Database\Eloquent\ModelNotFoundException::class,
-        // \Illuminate\Session\TokenMismatchException::class,
-        // \Illuminate\Validation\ValidationException::class,
+        \Illuminate\Auth\AuthenticationException::class,
+        \Illuminate\Auth\Access\AuthorizationException::class,
+        \Symfony\Component\HttpKernel\Exception\HttpException::class,
+        \Illuminate\Database\Eloquent\ModelNotFoundException::class,
+        \Illuminate\Session\TokenMismatchException::class,
+        \Illuminate\Validation\ValidationException::class,
     ];
 
     /**
@@ -32,11 +32,8 @@ class Handler extends ExceptionHandler
      */
     public function report(Exception $exception)
     {
-        //dd($exception);
         if (app()->bound('sentry') && $this->shouldReport($exception)) {
-            //dd(app('sentry')->captureException($exception));
-            //dd($exception);
-            app('sentry')->captureException($exception);
+            $this->sentryID = app('sentry')->captureException($exception);
         }
         parent::report($exception);
     }
@@ -50,6 +47,11 @@ class Handler extends ExceptionHandler
      */
     public function render($request, Exception $exception)
     {
+        //$exception->getStatusCode()
+        return response()->view('errors.500', [
+            'sentryID' => $this->sentryID,
+        ], 500);
+        
         return parent::render($request, $exception);
     }
 
