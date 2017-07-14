@@ -110,7 +110,7 @@ class Api500EasyPayCacheService
 
     public function getSendListCache($tags, $type)
     {
-        return $tasks = Redis::lrange($tags . '_' . $type, 0, self::SENDLISTLIMIT);
+        return Redis::lrange($tags . '_' . $type, 0, self::SENDLISTLIMIT);
     }
     
     public function setResponseCache($tags, $type, $base_id, $data)
@@ -182,6 +182,12 @@ class Api500EasyPayCacheService
     {
         return Redis::Get($tags . '_' . $type . '_' . $merNo . '_' . $orderNum);
     }
+
+    public function getResponseQrcodeList($tags, $type)
+    {
+        return Redis::lrange($tags . '_' . $type, 0, self::SENDLISTLIMIT);
+    }
+
     // TODO exception    
     public function getResponseQrcode($tags, $type, $base_id)
     {
