@@ -9,7 +9,11 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Crypt;
 use App\Models\EasyPaySend;
+use App\Models\EasyPayWaiting;
 use Log;
+use DB;
+use Illuminate\Database\QueryException;
+use App\Http\Services\Cache\Api500EasyPayCacheService;
 
 class SaveRedisSendData implements ShouldQueue
 {
@@ -19,6 +23,7 @@ class SaveRedisSendData implements ShouldQueue
 
     public $tries = 3;
 
+    const WAITING = 1;
     /**
      * Create a new job instance.
      *
@@ -34,8 +39,9 @@ class SaveRedisSendData implements ShouldQueue
      *
      * @return void
      */
-    public function handle()
+    public function handle(Api500EasyPayCacheService $Api500EasyPayCacheService)
     {
+        $this->cache_service = $Api500EasyPayCacheService;
         Log::info('# SaveRedisSendData #' . print_r($this->redis_send_data, true));
         // 加密栏位 sCorpCode iUserKey signKey encKey sign
         $redis_send_data['sCorpCode'] = Crypt::encrypt($this->redis_send_data['config']['sCorpCode']);
@@ -64,18 +70,57 @@ class SaveRedisSendData implements ShouldQueue
         $redis_send_data['charset'] = $redis_send_pay_data->charset;
         $redis_send_data['sign'] = Crypt::encrypt($redis_send_pay_data->sign);
         Log::info('# EasyPaySend #' . print_r($redis_send_data, true));
+
+        $redis_waiting_data['sCorpCode'] = $redis_send_data['sCorpCode'];
+        $redis_waiting_data['sOrderID'] = $redis_send_data['sOrderID'];
+        $redis_waiting_data['iUserKey'] = $redis_send_data['iUserKey'];
+        $redis_waiting_data['base_id'] = $redis_send_data['base_id'];
+        $redis_waiting_data['order_status'] = self::WAITING;
+        Log::info('# EasyPayWaiting #' . print_r($redis_waiting_data, true));
+        
+        $has_easy_pay = EasyPaySend::where('base_id', $redis_send_data['base_id'])->get();
+        if (!$has_easy_pay->isEmpty()) {
+            Log::info('# base_id data haved #'
+                        . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
+                );
+            $this->job->delete();
+            return;
+        }  
+
+        DB::beginTransaction();
         try {
-            $easy_pay_data = EasyPaySend::create($redis_send_data);
-            Log::info('# inster Mysql success #' 
-                . ', easy_pay_data = ' . print_r($easy_pay_data, true)
+            $insert_send_data = EasyPaySend::create($redis_send_data);
+            $insert_waiting_data = EasyPayWaiting::create($redis_waiting_data);
+            DB::commit();
+            Log::info('# inster Mysql success #'
+                . ', insert_send_data = ' . print_r($insert_send_data, true)
+                . ', insert_waiting_data = ' . print_r($insert_waiting_data, true)
                 . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
-            );
+                );
             // TODO:: 删除cache
-        } catch (\Exception $exception) {
-            Log::error('# inster Mysql error #' 
-                . ', exception = ' . print_r($exception, true)
+            $this->cache_service->deleteListCache('Api500EasyPay', 'send', $redis_send_data['base_id']);
+            $this->cache_service->deleteTagsCache('Api500EasyPay', 'send', $redis_send_data['base_id']);
+            
+        } catch (QueryException $exception) {
+            DB::rollback();
+            Log::error('# inster Mysql error #'
+                . ', Exception = ' . print_r($exception, true)
                 . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
             );
         }
+    }
+
+    /**
+     * Handle a job failure.
+     *
+     * @return void
+     */
+    public function failed()
+    {
+        // Called when the job is failing...
+        Log::error('# SaveRedisSendData Job fail #'
+            . ', redis_send_data = ' . print_r($this->redis_send_data, true)
+            . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
+        );
     }
 }
