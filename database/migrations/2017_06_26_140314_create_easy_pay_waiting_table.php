@@ -16,18 +16,25 @@ class CreateEasyPayWaitingTable extends Migration
             $table->increments('id');
 
             // 盤口資訊
-            $table->string('sCorpCode', 32)->comment('盤口');
+            $table->text('sCorpCode')->comment('盤口');
             $table->string('sOrderID', 32)->comment('盤口訂單編號');
-            $table->string('iUserKey', 32)->comment('盤口用戶ID');
-
+            $table->text('iUserKey')->comment('盤口用戶ID');
+           
             $table->string('base_id', 32)->comment('only key link cache'); # cache base id
-            $table->string('merNo', 16)->comment('商戶號'); 
-            $table->string('stateCode', 16)->comment('get狀態'); 
-            $table->string('msg', 4)->comment('get訊息'); 
-            $table->string('orderNum', 20)->comment('訂單編號');
-            $table->string('qrcodeUrl', 128)->comment('qrcode');
-            $table->string('sign', 32)->comment('簽名');
-            $table->string('order_status', 8)->comment('1:waiting 2:success 3:fail'); //waiting fail success
+
+            $table->integer('qrcode_id')
+                ->length(10)
+                ->unsigned()
+                ->nullable()
+                ->comment('link respones_get_qrcode'); 
+
+            $table->integer('call_back_id')
+                ->length(10)
+                ->unsigned()
+                ->nullable()
+                ->comment('link respones_call_back'); 
+
+            $table->char('order_status', 2)->comment('1:waiting 2:get qrcode 3:call back success 4:fail'); //waiting fail success
             $table->timestamps();
         });
     }

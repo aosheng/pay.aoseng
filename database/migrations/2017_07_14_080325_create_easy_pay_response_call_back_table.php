@@ -1,9 +1,10 @@
 <?php
 
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateEasyPayResponseTable extends Migration
+class CreateEasyPayResponseCallBackTable extends Migration
 {
     /**
      * Run the migrations.
@@ -12,7 +13,7 @@ class CreateEasyPayResponseTable extends Migration
      */
     public function up()
     {
-        Schema::create('easy_pay_response', function (Blueprint $table) {
+        Schema::create('easy_pay_response_call_back', function (Blueprint $table) {
             $table->increments('id');
          
             $table->string('base_id', 32)->comment('only key link cache'); # cache base id
@@ -23,7 +24,7 @@ class CreateEasyPayResponseTable extends Migration
             $table->string('goodsName', 20)->comment('商品名稱 (可做為顯示訂單號碼用)'); 
             $table->string('payResult', 16)->comment('支付狀態 00表示成功'); 
             $table->dateTime('payDate', 19)->comment('支付時間 yyyyMMddHHmmss');
-            $table->string('sign', 32)->comment('簽名'); 
+            $table->text('sign')->comment('簽名'); 
             $table->timestamps();
         });
     }
@@ -35,6 +36,6 @@ class CreateEasyPayResponseTable extends Migration
      */
     public function down()
     {
-        Schema::drop('easy_pay_response');
+        Schema::drop('easy_pay_response_call_back');
     }
 }
