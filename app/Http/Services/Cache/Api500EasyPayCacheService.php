@@ -146,17 +146,31 @@ class Api500EasyPayCacheService
     {
         Log::info('# start call_back #'
             . ', [' . $tags . '_' . $type . ']'
-            . ', ' .$data['merNo'] . '_' . $data['orderNum']
+            . ', data = ' .$data
             . ', base_id = ' . $base_id
             . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
         );
-        Redis::rpush($tags . '_' . $type, $data['merNo'] . '_' . $data['orderNum']);
+        Redis::rpush($tags . '_' . $type, $base_id);
         
         Cache::store('redis')
             ->tags([$tags . '_' . $type])
-            ->forever($data['merNo'] . '_' . $data['orderNum'], ['base_id' => $base_id, 'data' => $data]);
+            ->forever($base_id, $data);
     }
 
+    public function getSaveCallBackList($tags, $type)
+    {
+        return Redis::lrange($tags . '_' . $type, 0, self::SENDLISTLIMIT);
+    }
+
+    /**
+     * Wait Call Back function
+     *
+     * @param [Str] $tags
+     * @param [Str] $type
+     * @param [Str] $merNo
+     * @param [Num] $orderNum
+     * @return base_id
+     */
     public function getCallBackWaitCache($tags, $type, $merNo, $orderNum)
     {
         return Cache::store('redis')

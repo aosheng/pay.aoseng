@@ -258,14 +258,14 @@ class Api500EasyPayService
 
         $base_id = $this->cache_service->getCallBackWaitCache(
             self::PAYMENTSERVICE,
-            'call_back_wait',
+            'wait_call_back',
             $params->merNo,
             $params->orderNum
         );
 
         if (!$base_id) {
             Log::warning('# base_id null #'
-                . '[' . self::PAYMENTSERVICE . '_call_back_wait]'
+                . '[' . self::PAYMENTSERVICE . '_wait_call_back]'
                 . ', merNo' .  $params->merNo
                 . ', orderNum' . $params->orderNum
                 . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
@@ -275,6 +275,7 @@ class Api500EasyPayService
 
         Log::info('base_id = ' . $base_id);
         // 取send的資料 拿sign_key
+        // TODO: send 已被存入資料庫時, 要從資料庫取
         $get_send_cache = $this->cache_service->getSendCache(
             self::PAYMENTSERVICE,
             'send',

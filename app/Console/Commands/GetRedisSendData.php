@@ -68,7 +68,7 @@ class GetRedisSendData extends Command
             }
         }
 
-        if ($this->action == 'response') {
+        if ($this->action == 'response' && $this->other == 'get_qrcode') {
             $this->other = $this->argument('other');
             $response_get_qrcode_list = $this->cache_service->getResponseQrcodeList(
                 $this->tags,
@@ -89,6 +89,32 @@ class GetRedisSendData extends Command
                 
                 if ($response_get_qrcode_data) {
                     dispatch((new SaveRedisResponseGetQrcodeData($base_id, $response_get_qrcode_data))
+                        ->onQueue('get_redis_insert_mysql'));
+                }
+            }
+        }
+
+        if ($this->action == 'response' && $this->other == 'call_back') {
+            $this->other = $this->argument('other');
+            $response_call_back_list = $this->cache_service->getResponseCallBackList(
+                $this->tags,
+                $this->action . '_' . $this->other
+            );
+            
+            if (empty($response_call_back_list)) {
+                $this->info('Can not find '
+                    . $this->argument('payment')
+                    . '_' . $this->action
+                    . '_' . $this->other
+                    . ' cache'
+                );
+                return;
+            }
+            foreach ($response_call_back_list as $base_id) {
+                $response_call_back_data = $this->cache_service->getResponseCallBack($this->tags, $this->action . '_' . $this->other, $base_id);
+                
+                if ($response_call_back_data) {
+                    dispatch((new SaveRedisResponseCallBackData($base_id, $response_call_back_data))
                         ->onQueue('get_redis_insert_mysql'));
                 }
             }
