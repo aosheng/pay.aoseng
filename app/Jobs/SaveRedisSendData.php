@@ -2,18 +2,18 @@
 
 namespace App\Jobs;
 
-use Illuminate\Bus\Queueable;
-use Illuminate\Queue\SerializesModels;
-use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Foundation\Bus\Dispatchable;
-use Crypt;
+use App\Http\Services\Cache\Api500EasyPayCacheService;
 use App\Models\EasyPaySend;
 use App\Models\EasyPayWaiting;
-use Log;
+use Crypt;
 use DB;
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Database\QueryException;
-use App\Http\Services\Cache\Api500EasyPayCacheService;
+use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\SerializesModels;
+use Log;
 
 class SaveRedisSendData implements ShouldQueue
 {
@@ -86,22 +86,22 @@ class SaveRedisSendData implements ShouldQueue
             $this->job->delete();
             return;
         }  
-
+        // TODO: 可以新增function處理
         DB::beginTransaction();
         try {
             $insert_send_data = EasyPaySend::create($redis_send_data);
             $insert_waiting_data = EasyPayWaiting::create($redis_waiting_data);
-            DB::commit();
+            
             Log::info('# inster Mysql success #'
                 . ', insert_send_data = ' . print_r($insert_send_data, true)
                 . ', insert_waiting_data = ' . print_r($insert_waiting_data, true)
                 . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
-                );
-            // TODO:: 删除cache
+            );
+
             $this->cache_service->deleteListCache('Api500EasyPay', 'send', $redis_send_data['base_id']);
             $this->cache_service->deleteTagsCache('Api500EasyPay', 'send', $redis_send_data['base_id']);
-            
-        } catch (QueryException $exception) {
+            DB::commit();
+        } catch (\QueryException $exception) {
             DB::rollback();
             Log::error('# inster Mysql error #'
                 . ', Exception = ' . print_r($exception, true)

@@ -2,11 +2,10 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
-
 use App\Http\Services\Cache\Api500EasyPayCacheService;
-use App\jobs\SaveRedisSendData;
 use App\jobs\SaveRedisResponseGetQrcodeData;
+use App\jobs\SaveRedisSendData;
+use Illuminate\Console\Command;
 
 class GetRedisSendData extends Command
 {
@@ -72,9 +71,9 @@ class GetRedisSendData extends Command
         if ($this->action == 'response') {
             $this->other = $this->argument('other');
             $response_get_qrcode_list = $this->cache_service->getResponseQrcodeList(
-                    $this->tags,
-                    $this->action . '_' . $this->other
-                );
+                $this->tags,
+                $this->action . '_' . $this->other
+            );
             
             if (empty($response_get_qrcode_list)) {
                 $this->info('Can not find ' 
@@ -85,19 +84,15 @@ class GetRedisSendData extends Command
                 );
                 return;
             }
-//dd($response_get_qrcode_list);
             foreach ($response_get_qrcode_list as $base_id) {
-                ///dd($this->cache_service->getResponseQrcode($this->tags, $this->action . '_' . $this->other, $base_id));       
                 $response_get_qrcode_data = $this->cache_service->getResponseQrcode($this->tags, $this->action . '_' . $this->other, $base_id);
-                //dd($response_get_qrcode_data);
+                
                 if ($response_get_qrcode_data) {
-                   
-                    dispatch((new SaveRedisResponseGetQrcodeData($response_get_qrcode_data))
+                    dispatch((new SaveRedisResponseGetQrcodeData($base_id, $response_get_qrcode_data))
                         ->onQueue('get_redis_insert_mysql'));
                 }
             }
         }
-
 
         echo date("Y-m-d H:i:s")."\n";
     }
