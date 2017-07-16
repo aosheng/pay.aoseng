@@ -118,7 +118,7 @@ class Api500EasyPayCacheService
         Redis::rpush($tags . '_' . $type, $base_id);
         Cache::store('redis')
             ->tags([$tags . '_' . $type])
-            ->add($base_id, $data, self::SURVIVAL_TIME);
+            ->forever($base_id, $data);
         
         Log::info('# setResponseCache #'
             . ', ['. $tags . '_' . $type .']'
