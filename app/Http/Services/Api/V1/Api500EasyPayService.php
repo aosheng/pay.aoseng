@@ -1,14 +1,16 @@
 <?php
 namespace App\Http\Services\Api\V1;
 
-use Cache;
-use Dingo\Api\Routing\Helpers;
-use Illuminate\Support\Facades\Redis;
 use App\Http\Services\Cache\Api500EasyPayCacheService;
-use Log;
+use App\Models\EasyPaySend;
 use App\jobs\SendCallBackToAdmin;
+use Cache;
+use Crypt;
+use Dingo\Api\Routing\Helpers;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
+use Illuminate\Support\Facades\Redis;
+use Log;
 
 class Api500EasyPayService
 {
@@ -233,8 +235,8 @@ class Api500EasyPayService
 
     public function pay_call_back($params)
     {      
-        // $params = json_decode($params); # test
-        $params = json_decode($params['data']);
+         $params = json_decode($params); # test
+        //$params = json_decode($params['data']);
         
         Log::info('params =>' . print_r($params, true));
 
@@ -274,8 +276,9 @@ class Api500EasyPayService
         }
 
         Log::info('base_id = ' . $base_id);
+        
+        $sign_key = false;    
         // 取send的資料 拿sign_key
-        // TODO: send 已被存入資料庫時, 要從資料庫取
         $get_send_cache = $this->cache_service->getSendCache(
             self::PAYMENTSERVICE,
             'send',
@@ -283,20 +286,29 @@ class Api500EasyPayService
         ); 
 
         if (!$get_send_cache) {
-            Log::warning('# get_send_cache null #'
-                . '[' . self::PAYMENTSERVICE . '_send]'
-                . ', base_id' .  $base_id
-                . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
-            );
-            return false;
+            $get_send_cache = EasyPaySend::where('base_id', $base_id)->first();
+            
+            if (!$get_send_cache) {
+                Log::warning('# get_send_cache null #'
+                    . '[' . self::PAYMENTSERVICE . '_send]'
+                    . ', base_id' .  $base_id
+                    . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
+                );
+                return false;
+            }
+            $sign_key = Crypt::decrypt($get_send_cache->config_signKey);
+            $amount = $get_send_cache->amount;
         }
 
         Log::info('# get_send_cache # ' . print_r($get_send_cache, true));
 
-        $sign_key = $get_send_cache['config']['signKey'];
-        $send_third_data = json_decode($get_send_cache['data']['data']);
+        if (!$sign_key) {
+            $sign_key = $get_send_cache['config']['signKey'];
+            $send_third_data = json_decode($get_send_cache['data']['data']);
+            $amount = $send_third_data->amount;
+        }
 
-        if ($send_third_data->amount != $params->amount) {
+        if ($amount != $params->amount) {
             Log::warning('# 金額不符 #'
                 . '[' . self::PAYMENTSERVICE . '_send]'
                 . ', send_third_data = ' . $send_third_data->amount
@@ -332,6 +344,7 @@ class Api500EasyPayService
         // 第三方call back 訊息存入redis , 發通知給後台接口
         dispatch((new SendCallBackToAdmin($base_id, $call_back))
             ->onQueue('send_call_back_to_admin'));
+        Log::info('# To SendCallBackToAdmin job success #');    
             
         return 0;
 

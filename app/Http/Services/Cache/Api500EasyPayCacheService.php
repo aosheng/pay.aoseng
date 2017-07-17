@@ -130,14 +130,14 @@ class Api500EasyPayCacheService
         if ($data['stateCode'] === '00') {
             self::setCallBackWaitCache(
                 $tags,
-                'call_back_wait',
+                'wait_call_back',
                 $base_id,
                 $data
             );
         }
 
         Log::info('# setCallBackWaitCache #' 
-            . ', ['. $tags . '_call_back_wait]' 
+            . ', ['. $tags . '_wait_call_back]' 
             . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
         );
     }
@@ -146,7 +146,7 @@ class Api500EasyPayCacheService
     {
         Log::info('# start call_back #'
             . ', [' . $tags . '_' . $type . ']'
-            . ', data = ' .$data
+            . ', data = ' . print_r($data, true)
             . ', base_id = ' . $base_id
             . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
         );
@@ -160,6 +160,13 @@ class Api500EasyPayCacheService
     public function getSaveCallBackList($tags, $type)
     {
         return Redis::lrange($tags . '_' . $type, 0, self::SENDLISTLIMIT);
+    }
+
+    public function getSaveCallBack($tags, $type, $base_id)
+    {
+        return Cache::store('redis')
+            ->tags([$tags . '_' . $type])
+            ->get($base_id);
     }
 
     /**
@@ -246,6 +253,6 @@ class Api500EasyPayCacheService
         Redis::rpush($tags . '_' . $type, $data['merNo'] . '_' . $data['orderNum']);
         Cache::store('redis')
             ->tags([$tags . '_' . $type])
-            ->add($data['merNo'] . '_' . $data['orderNum'], $base_id, self::SURVIVAL_TIME);
+            ->forever($data['merNo'] . '_' . $data['orderNum'], $base_id);
     }
 }
