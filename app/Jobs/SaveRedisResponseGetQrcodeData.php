@@ -65,7 +65,7 @@ class SaveRedisResponseGetQrcodeData implements ShouldQueue
 
         if (!$has_qrcode->isEmpty()) {
             Log::info('# qrcode data haved #'
-                        . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
+                    . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
                 );
             $this->job->delete();
             return;

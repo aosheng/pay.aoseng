@@ -47,10 +47,10 @@ class SendCallBackToAdmin implements ShouldQueue
             . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
         );
 
-        $this->cache_service->deleteListCache('Api500EasyPay', 'call_back_wait', $this->call_back_data['merNo'] . '_' . $this->call_back_data['orderNum']);
-        $this->cache_service->deleteTagsCache('Api500EasyPay', 'call_back_wait', $this->call_back_data['merNo'] . '_' . $this->call_back_data['orderNum']);
+        $this->cache_service->deleteListCache('Api500EasyPay', 'wait_call_back', $this->call_back_data['merNo'] . '_' . $this->call_back_data['orderNum']);
+        $this->cache_service->deleteTagsCache('Api500EasyPay', 'wait_call_back', $this->call_back_data['merNo'] . '_' . $this->call_back_data['orderNum']);
         
-        // TODO: 通知後台更新
+        // TODO: 通知後台更新, 再删除save call back cache
 
         // TODO: 刪掉過時的wait call back cache, 可以從waiting table 去抓取 
     }
