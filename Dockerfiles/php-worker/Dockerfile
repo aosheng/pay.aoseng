@@ -21,6 +21,7 @@ MAINTAINER Mahmoud Zalt <mahmoud@zalt.me>
 #
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY supervisord_redis_action.ini /etc/supervisor/conf.d/supervisord_redis_action.ini
+COPY supervisord_call_back_to_admin.ini /etc/supervisor/conf.d/supervisord_call_back_to_admin.ini
 
 #
 #--------------------------------------------------------------------------
