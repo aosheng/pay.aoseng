@@ -46,10 +46,13 @@ class SendCallBackToAdmin implements ShouldQueue
             . ', call_back_data = ' . print_r($this->call_back_data, true)
             . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
         );
-        // TODO: 刪掉 setCallBackWaitCache 寫入的key
+
         $this->cache_service->deleteListCache('Api500EasyPay', 'call_back_wait', $this->call_back_data['merNo'] . '_' . $this->call_back_data['orderNum']);
         $this->cache_service->deleteTagsCache('Api500EasyPay', 'call_back_wait', $this->call_back_data['merNo'] . '_' . $this->call_back_data['orderNum']);
+        
         // TODO: 通知後台更新
+
+        // TODO: 刪掉過時的wait call back cache, 可以從waiting table 去抓取 
     }
 
     public function failed()

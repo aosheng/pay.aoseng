@@ -14,7 +14,9 @@ class CreateEasyPayResponseQrcodeTable extends Migration
     {
         Schema::create('easy_pay_response_qrcode', function (Blueprint $table) {
             $table->increments('id');
-         
+            
+            $table->string('base_id', 32)->comment('only key link cache'); # cache base id
+            
             $table->string('merNo', 16)->comment('商戶號'); 
             $table->string('stateCode', 16)->comment('get狀態'); 
             $table->string('msg', 4)->comment('get訊息'); 
