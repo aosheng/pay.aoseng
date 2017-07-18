@@ -30,7 +30,15 @@ class Kernel extends ConsoleKernel
         if (env('APP_ENV') == 'production') {
             $schedule->command('Tothird:GetTasksToThird')
                 ->cron('0/2 * * * * *');
-            
+
+            $schedule->command('Redis_Action:GetData Api500EasyPay send')
+            ->hourlyAt(5);
+
+            $schedule->command('Redis_Action:GetData Api500EasyPay response get_qrcode')
+            ->hourlyAt(10);
+
+            $schedule->command('Redis_Action:GetData Api500EasyPay save call_back')
+            ->hourlyAt(15);
         }
     }
 
