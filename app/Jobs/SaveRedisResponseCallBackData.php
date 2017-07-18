@@ -23,7 +23,9 @@ class SaveRedisResponseCallBackData implements ShouldQueue
 
     public $tries = 3;
 
-    const CALLBACK = 3;
+    const GETQRCODE = 2;
+    const CALLBACK = 3;  
+
     /**
      * Create a new job instance.
      *
@@ -61,7 +63,7 @@ class SaveRedisResponseCallBackData implements ShouldQueue
             . ', FILE = ' .__FILE__ . 'LINE:' . __LINE__
         );
 
-        $has_call_back = EasyPayResponseCallBack::where('base_id', $call_back['base_id'])->get();
+        $has_call_back = EasyPayResponseCallBack::OfBaseId($call_back['base_id'])->get();
 
         if (!$has_call_back->isEmpty()) {
             Log::info('# call_back data haved #'
@@ -75,7 +77,9 @@ class SaveRedisResponseCallBackData implements ShouldQueue
         DB::beginTransaction();
         try {
             $insert_call_back = EasyPayResponseCallBack::create($call_back);
-            $update_waiting = EasyPayWaiting::where('base_id', $call_back['base_id'])->first();
+            $update_waiting = EasyPayWaiting::ofBaseId($call_back['base_id'])
+                ->ofOrderStatus(self::GETQRCODE)
+                ->first();
             $update_waiting->call_back_id = $insert_call_back->id;
             $update_waiting->order_status = self::CALLBACK;
             $update_waiting->save();

@@ -18,8 +18,11 @@ class Api500EasyPayService
 
     protected $third = ['WX', 'ZFB', 'ZFB_WAP'];
 
-    const GETQRCODETIMES = 8;
     const PAYMENTSERVICE = 'Api500EasyPay';
+    const TYPEINPUTBASEID = 'input_base_id';
+    
+    const GETQRCODETIMES = 8;
+    
     const ERRORCODE = '9999';
     const ERRORMSG = '忙线中, 请稍后再试, 或重新整理';
 
@@ -41,7 +44,7 @@ class Api500EasyPayService
         
         $has_qrcode = $this->cache_service->hasQrcode(
             self::PAYMENTSERVICE,
-            'input_base_id',
+            self::TYPEINPUTBASEID,
             $params->config->merNo,
             $params->pay->orderNum
         );
