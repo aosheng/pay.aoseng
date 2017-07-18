@@ -8,21 +8,21 @@ use App\jobs\SaveRedisResponseGetQrcodeData;
 use App\jobs\SaveRedisSendData;
 use Illuminate\Console\Command;
 
-class GetRedisSendData extends Command
+class GetRedisData extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'Redis_Action:GetSendData {payment} {action} {other?}';
+    protected $signature = 'Redis_Action:GetData {payment} {action} {other?}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Get Redis Third Pay Data : --option {payment} {action} {other?}';
+    protected $description = 'Get Redis Data : --option {payment} {action} {other?}';
 
     protected $Api500EasyPayCacheService;
     protected $tags;

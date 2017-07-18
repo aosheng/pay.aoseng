@@ -124,7 +124,7 @@ class Api500EasyPayController extends BaseController
 
     public function store(Request $request)
     {   
-        //Log::info('get request = ' . print_r($request->all(), true)); 
+        //Log::info('get request = ' . print_r($request->all(), true));
         $request = '';  
         $request['config']['sCorpCode'] = 'K001';
         $request['config']['sOrderID'] = date('YmdHis'); 
@@ -222,25 +222,25 @@ class Api500EasyPayController extends BaseController
     public function pay_call_back(Request $request)
     {
         // test params
-        // require_once(base_path() . '/resources/ThirdPay/500EasyPay/Util.php');
-        // $this->util = new \util();
+        require_once(base_path() . '/resources/ThirdPay/500EasyPay/Util.php');
+        $this->util = new \util();
         
-        // $sign_key = '2566AE677271D6B88B2476BBF923ED88';
-        // $params['merNo'] = 'QYF201705260107';
-        // $params['netway'] = 'WX';
-        // $params['orderNum'] = '201706301409577691';
-        // $params['amount'] = '100';
-        // $params['goodsName'] = '测试支付';
-        // $params['payResult'] = '00';
-        // $params['payDate'] = '20170630140957';
-        // ksort($params);
-        // $params['sign'] = strtoupper(md5($this->util->json_encode($params) . $sign_key)); 
-        // $params = json_encode($params); # test 
-        // Log::info('get request = ' . print_r($params, true)); # test
+        $sign_key = '2566AE677271D6B88B2476BBF923ED88';
+        $params['merNo'] = 'QYF201705260107';
+        $params['netway'] = 'WX';
+        $params['orderNum'] = '201707171313555721';
+        $params['amount'] = '100';
+        $params['goodsName'] = '测试支付';
+        $params['payResult'] = '00';
+        $params['payDate'] = '20170717131357';
+        ksort($params);
+        $params['sign'] = strtoupper(md5($this->util->json_encode($params) . $sign_key)); 
+        $params = json_encode($params); # test 
+        Log::info('get request = ' . print_r($params, true)); # test
        
-        Log::info('get request = ' . print_r($request->all(), true));
+        //Log::info('get request = ' . print_r($request->all(), true));
         
-        // $this->payService->pay_call_back($params); # test
-        $this->payService->pay_call_back($request->all());
+        $this->payService->pay_call_back($params); # test
+        //$this->payService->pay_call_back($request->all());
     }
 }

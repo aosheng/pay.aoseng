@@ -14,7 +14,7 @@ class Kernel extends ConsoleKernel
      */
     protected $commands = [
         Commands\GetTasksToThird::class,
-        Commands\GetRedisSendData::class,
+        Commands\GetRedisData::class,
     ];
 
     /**
@@ -30,6 +30,7 @@ class Kernel extends ConsoleKernel
         if (env('APP_ENV') == 'production') {
             $schedule->command('Tothird:GetTasksToThird')
                 ->cron('0/2 * * * * *');
+            
         }
     }
 
