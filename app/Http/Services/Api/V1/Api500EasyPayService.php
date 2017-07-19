@@ -20,12 +20,21 @@ class Api500EasyPayService
 
     const PAYMENTSERVICE = 'Api500EasyPay';
     const TYPEINPUTBASEID = 'input_base_id';
-    
+    const TYPERESPONSEGETQRCODE ='response_get_qrcode';
+    const TYPESAVECALLBACK = 'save_call_back';
+    const TYPEWAITCALLBACK = 'wait_call_back';
+    const TYPESEND = 'send';
+
     const GETQRCODETIMES = 8;
     
     const ERRORCODE = '9999';
     const ERRORMSG = '忙线中, 请稍后再试, 或重新整理';
 
+    /**
+     * 第三方初始設定
+     * 自訂文件載入
+     * @param Api500EasyPayCacheService $Api500EasyPayCacheService
+     */
     public function __construct(Api500EasyPayCacheService $Api500EasyPayCacheService)
     {
         require_once(base_path() . '/resources/ThirdPay/500EasyPay/Util.php');
@@ -37,7 +46,31 @@ class Api500EasyPayService
         $this->services_json = new \Services_JSON();
         $this->util = new \util();
     }
-
+    /**
+     * 輕易付 從第三方取得grcode
+     * @param [json] $params 發起付款傳入資訊
+     * $params->config->sCorpCode 盤口編號
+     * $params->config->sOrderID 訂單編號
+     * $params->config->iUserKey 用戶代碼
+     * $params->config->payment 付款方式(pay: 支付, to_pay: 代付)
+     * $params->config->merNo 商户号(qyf201705200001)	
+     * $params->config->signKey MD5密钥(AiYLumB03Fingt3R3ULdvFzS)
+     * $params->config->encKey 3DES密钥(DNSow6CK0MIUUEJrNIziQ1Pm)
+     * $params->config->payUrl 支付宝或微信地址(http://47.90.116.117:90/api/pay.action)
+     * $params->config->remitUrl 代付地址(http://47.90.116.117:90/api/remit.action)
+     * 
+     * $params->pay->version 版本号
+     * $params->pay->netway 支付方式(WX, ZFB)
+     * $params->pay->random 4位随机数, 必须是文本型
+     * $params->pay->orderNum 商户订单号
+     * $params->pay->amount 默认分为单位, 转换成元需要 * 100, 必须是文本型
+     * $params->pay->goodsName 商品名称
+     * $params->pay->charset 系统编码(utf-8)
+     * $params->pay->callBackUrl 通知地址, 可以写成固定
+     * $params->pay->callBackViewUrl 暂时没用
+     * 
+     * @return [json]
+     */
     public function send($params)
     {
         $params = json_decode($params);
@@ -53,7 +86,7 @@ class Api500EasyPayService
             $base_id = $has_qrcode;
             return self::getResponseQrcode(
                 self::PAYMENTSERVICE,
-                'response_get_qrcode',
+                self::TYPERESPONSEGETQRCODE,
                 $base_id,
                 self::GETQRCODETIMES
             );
@@ -65,11 +98,11 @@ class Api500EasyPayService
             'iUserKey' => $params->config->iUserKey,
             'payment' => $params->config->payment,
 
-            'merNo' => $params->config->merNo,         #商户号 'qyf201705200001'	
-            'signKey' => $params->config->signKey,      #MD5密钥 'AiYLumB03Fingt3R3ULdvFzS'
-            'encKey' => $params->config->encKey,        #3DES密钥 'DNSow6CK0MIUUEJrNIziQ1Pm'
-            'payUrl' => $params->config->payUrl,        #支付宝或微信地址 'http://47.90.116.117:90/api/pay.action'
-            'remitUrl' => $params->config->remitUrl,    #代付地址 'http://47.90.116.117:90/api/remit.action'
+            'merNo' => $params->config->merNo,
+            'signKey' => $params->config->signKey,
+            'encKey' => $params->config->encKey,
+            'payUrl' => $params->config->payUrl,
+            'remitUrl' => $params->config->remitUrl,
 	    );
         
         if (!self::config_parames_check($config)) {
@@ -78,126 +111,61 @@ class Api500EasyPayService
         }
 
 		$pay = array();
-		$pay['version'] = $params->pay->version; # 版本号
-		$pay['merNo'] = $config['merNo']; #商户号
-		$pay['netway'] = $params->pay->netway;  #WX 或者 ZFB
-		$pay['random'] = $params->pay->random;  #4位随机数    必须是文本型
-		$pay['orderNum'] = $params->pay->orderNum;  #商户订单号
-		$pay['amount'] = $params->pay->amount;  #默认分为单位 转换成元需要 * 100   必须是文本型
-		$pay['goodsName'] = $params->pay->goodsName;  #商品名称
-		$pay['charset'] = $params->pay->charset;  # 系统编码
-		$pay['callBackUrl'] = $params->pay->callBackUrl;  #通知地址 可以写成固定
-		$pay['callBackViewUrl'] = $params->pay->callBackViewUrl; #暂时没用
+		$pay['version'] = $params->pay->version;
+		$pay['merNo'] = $config['merNo'];
+		$pay['netway'] = $params->pay->netway;
+		$pay['random'] = $params->pay->random;
+		$pay['orderNum'] = $params->pay->orderNum;
+		$pay['amount'] = $params->pay->amount;
+		$pay['goodsName'] = $params->pay->goodsName;
+		$pay['charset'] = $params->pay->charset;
+		$pay['callBackUrl'] = $params->pay->callBackUrl;
+		$pay['callBackViewUrl'] = $params->pay->callBackViewUrl;
         
         if (!self::pay_parames_check($pay)) {
             return $this->response->error('pay parames is an error.', 400);
         }
-        
-        ksort($pay); #排列数组 将数组已a-z排序
-        
-        $sign = md5($this->util->json_encode($pay) . $config['signKey']); #生成签名
+        // 排列数组 将数组已a-z排序
+        ksort($pay);
+        // 生成签名
+        $sign = md5($this->util->json_encode($pay) . $config['signKey']);
+        // 设置签名
+        $pay['sign'] = strtoupper($sign);
+        // 将数组转换为JSON格式
+        $data = $this->util->json_encode($pay);
 
-        $pay['sign'] = strtoupper($sign); #设置签名
-        $data = $this->util->json_encode($pay); #将数组转换为JSON格式
-
-        Log::info('# 通知地址 #' . $pay['callBackUrl'] . 'FILE = ' . app_path() . 'LINE:' . __LINE__);
-        Log::info('# 提交支付订单 #' . $pay['orderNum'] . 'FILE = ' . app_path() . 'LINE:' . __LINE__);
+        Log::info('# 通知地址 #' 
+            . $pay['callBackUrl'] 
+            . 'FILE = ' . app_path() . 'LINE:' . __LINE__
+        );
+        Log::info('# 提交支付订单 #' 
+            . $pay['orderNum'] 
+            . 'FILE = ' . app_path() . 'LINE:' . __LINE__
+        );
 
         $post = array('data' => $data);
         $input_data = ['url' => $config['payUrl'], 'data' => $post, 'config' => $config];
         $base_id = $this->cache_service->setCache(
             self::PAYMENTSERVICE,
-            'input_base_id',
+            self::TYPEINPUTBASEID,
             $input_data
         );
 
-        sleep(5);
         return self::getResponseQrcode(
             self::PAYMENTSERVICE,
-            'response_get_qrcode',
+            self::TYPERESPONSEGETQRCODE,
             $base_id,
             self::GETQRCODETIMES
         );
     }
-    
-    // TODO: 代付 目前已关闭
-    public function send_to_pay($params)
-    {
-        $params = json_decode($params);
-        dd($params);
-        $des = new \DES3($params->config->encKey);
-
-        $to_pay['version'] = $params->to_pay->version;
-        $to_pay['merNo'] = $params->config->merNo;            
-        $to_pay['orderNum'] = $params->to_pay->orderNum;
-        $to_pay['amount'] =  $des->encrypt($params->to_pay->amount * 100);
-        $to_pay['bankCode'] =  $params->to_pay->bankCode;
-        $to_pay['bankAccountName'] = $des->encrypt($params->to_pay->bankAccountName);
-        $to_pay['bankAccountNo'] = $des->encrypt($params->to_pay->bankAccountNo);
-        $to_pay['charset'] = 'utf-8';
-        $to_pay['callBackUrl'] = 'http://' . $_SERVER['HTTP_HOST'] . '/api/Api500EasyPay/to_pay_callback';
-        ksort($to_pay);
-
-        $sign = md5($this->util->json_encode($to_pay) . $config['signKey']); #生成签名
-        $to_pay['sign'] = strtoupper($sign); #设置签名
-		$data = $this->util->json_encode($to_pay); #将数组转换为JSON格式
-
-        Log::info('通知地址：' . $pay['callBackUrl']);
-		Log::info('提交代付订单：' . $pay['orderNum']);
-		$post = array('data' => $data);
-		$return = self::curl_post($config['remitUrl'], $post); #提交订单数据
-        $row = $json->decode($return); #将返回json数据转换为数组
-		
-        if ($row['stateCode'] !== '00'){
-			 Log::info('系统错误,错误号：' . $row['stateCode'] . '错误描述：' . $row['msg']);
-			echo '系统维护中.';
-			exit();
-		} else {
-			if (is_sign($row,$config['signKey'])){ #验证返回签名数据
-				if ($row['stateCode'] == '00') {
-					$stateCode = $row['stateCode'];
- 					$msg = $row['msg'];
- 					$orderNum = $row['orderNum'];
- 					$amount = $row['amount'];
- 					$amount = $amount / 100;
- 					$string = '创建代付成功!订单号：' . $orderNum . ' 系统消息：' . $msg . ' 代付金额：' . $amount;
-					Log::info($string);			
-					echo $string;
-					exit();
-				}
-			}else{
-			    Log::info('返回签名验证失败!');
-			}
-			
-		}
-    }
-
-    public function getResponseQrcode($tags, $type, $base_id, $i)
-    {
-        sleep(1);
-        Log::info('# start get qrcode #' . 'FELE = ' . __FILE__ . 'LINE:' . __LINE__);
-        $get_qrcode = $this->cache_service->getResponseQrcode($tags, $type, $base_id);
-
-        if ($get_qrcode == null && $i > 0) {
-            $i--;
-            self::getResponseQrcode($tags, $type, $base_id, $i);
-        }
-        Log::info('# get qrcode end #' 
-            . 'get_qrcode = ' . print_r($get_qrcode, true)
-            . 'FILE = ' . __FILE__ . 'LINE:' . __LINE__
-        );
-
-        if (!$get_qrcode) {
-            $get_qrcode['stateCode'] = self::ERRORCODE;
-            $get_qrcode['msg'] = self::ERRORMSG;
-        }
-        
-        return $get_qrcode;
-        // return (isset($get_qrcode['qrcodeUrl']))
-        //     ? $get_qrcode['qrcodeUrl']
-        //     : 'error :' . $get_qrcode['stateCode'] . 'msg : ' . $get_qrcode['msg'];
-    }
-
+    /**
+     * 資料傳送去第三方
+     * @param [String] $url 支付地址
+     * @param [json] $data 傳送資料
+     * @param [String] $sign_key MD5密钥
+     * @param [String] $base_id 唯一key
+     * @return [array] get qrcode status
+     */
     public function pay($url, $data, $sign_key, $base_id)
     {
         $is_return_data = [];
@@ -216,16 +184,25 @@ class Api500EasyPayService
                 . ', FILE = '. __FILE__ . 'LINE:' . __LINE__
             );
         }
-        
+        // 验证返回签名数据
         if (!self::is_sign($status, $sign_key)
-            && $status['stateCode'] === '00') { #验证返回签名数据
+            && $status['stateCode'] === '00') { 
             Log::warning('# 返回签名验证失败! #' . 'FILE = ' . __FILE__ . 'LINE:' . __LINE__);
             $status['stateCode'] = '999';
             $status['msg'] = '返回签名验证失败';
         }
         // 再想想要不要包進cache_service？
-        $this->cache_service->setResponseCache(self::PAYMENTSERVICE, 'response_get_qrcode', $base_id, $status);
-        $this->cache_service->deleteListCache(self::PAYMENTSERVICE, 'input_base_id', $base_id);
+        $this->cache_service->setResponseCache(
+            self::PAYMENTSERVICE,
+            self::TYPERESPONSEGETQRCODE,
+            $base_id,
+            $status
+        );
+        $this->cache_service->deleteListCache(
+            self::PAYMENTSERVICE,
+            self::TYPEINPUTBASEID,
+            $base_id
+        );
         $this->cache_service->deleteTagsCache(self::PAYMENTSERVICE, '', $base_id);
    
         Log::info('# get qrcode status #' 
@@ -236,6 +213,19 @@ class Api500EasyPayService
         return $status;
     }
 
+    /**
+     * 輕易付 付款完成回調
+     * @param [json] $params
+     * $params->merNo 商戶號
+     * $params->netway 支付方式
+     * $params->orderNum 訂單編號
+     * $params->amount 金額
+     * $params->goodsName 商品名稱
+     * $params->payResult 付款狀態
+     * $params->payDate 付款日期
+     * 
+     * @return 0
+     */
     public function pay_call_back($params)
     {      
          $params = json_decode($params); # test
@@ -246,14 +236,14 @@ class Api500EasyPayService
         // 確認是否已發過
         $check_call_back = $this->cache_service->checkCallBackCache(
             self::PAYMENTSERVICE,
-            'save_call_back',
+            self::TYPESAVECALLBACK,
             $params->merNo,
             $params->orderNum
         );
         
         if ($check_call_back) {
             Log::warning('# call_back saved #'
-                . ', [Api500EasyPay_save_call_back]'
+                . ', [' . self::PAYMENTSERVICE . '_' . self::TYPESAVECALLBACK . ']'
                 . ', merNo : ' . $params->merNo
                 . ', orderNum : ' . $params->orderNum
                 . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
@@ -263,14 +253,14 @@ class Api500EasyPayService
 
         $base_id = $this->cache_service->getCallBackWaitCache(
             self::PAYMENTSERVICE,
-            'wait_call_back',
+            self::TYPEWAITCALLBACK,
             $params->merNo,
             $params->orderNum
         );
 
         if (!$base_id) {
             Log::warning('# base_id null #'
-                . '[' . self::PAYMENTSERVICE . '_wait_call_back]'
+                . '[' . self::PAYMENTSERVICE . '_' . self::TYPEWAITCALLBACK . ']'
                 . ', merNo' .  $params->merNo
                 . ', orderNum' . $params->orderNum
                 . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
@@ -284,7 +274,7 @@ class Api500EasyPayService
         // 取send的資料 拿sign_key
         $get_send_cache = $this->cache_service->getSendCache(
             self::PAYMENTSERVICE,
-            'send',
+            self::TYPESEND,
             $base_id
         ); 
 
@@ -293,7 +283,7 @@ class Api500EasyPayService
             
             if (!$get_send_cache) {
                 Log::warning('# get_send_cache null #'
-                    . '[' . self::PAYMENTSERVICE . '_send]'
+                    . '[' . self::PAYMENTSERVICE . '_' . self::TYPESEND . ']'
                     . ', base_id' .  $base_id
                     . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
                 );
@@ -313,9 +303,9 @@ class Api500EasyPayService
 
         if ($amount != $params->amount) {
             Log::warning('# 金額不符 #'
-                . '[' . self::PAYMENTSERVICE . '_send]'
-                . ', send_third_data = ' . $send_third_data->amount
-                . ', call back params = ' . $params->amount
+                . '[' . self::PAYMENTSERVICE . '_' . self::TYPESEND . ']'
+                . ', send third amount = ' . $send_third_data->amount
+                . ', call back amount = ' . $params->amount
                 . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
             );
             return false;
@@ -350,52 +340,14 @@ class Api500EasyPayService
         Log::info('# To SendCallBackToAdmin job success #');    
             
         return 0;
-
-    }
-    // TODO: 查帳 缺第三方url
-    public function pay_check_status($params)
-    {
-        // TODO: 檢查data config sing 再送出查詢
-        $params = json_decode($params);
-        $config = array(
-            'merNo' => $params->config->merNo,         #商户号 'qyf201705200001'	
-            'signKey' => $params->config->signKey,      #MD5密钥 'AiYLumB03Fingt3R3ULdvFzS'
-            'encKey' => $params->config->encKey,        #3DES密钥 'DNSow6CK0MIUUEJrNIziQ1Pm'
-            'payUrl' => $params->config->payUrl,        #支付宝或微信地址 'http://47.90.116.117:90/api/pay.action'
-            'remitUrl' => $params->config->remitUrl,    #代付地址 'http://47.90.116.117:90/api/remit.action'
-	    );
-        
-        if (!self::config_parames_check($config)) {
-            Log::error('config 配置錯誤' . __FILE__ . 'LINE:' . __LINE__);
-            return $this->response->error('Config is an error.', 400);
-        }
-
-        $pay = array();
-		$pay['merNo'] = $config['merNo']; #商户号
-		$pay['netway'] = $params->pay->netway;  #WX 或者 ZFB
-		$pay['orderNum'] = $params->pay->orderNum;  #商户订单号
-		$pay['amount'] = $params->pay->amount;  #默认分为单位 转换成元需要 * 100   必须是文本型
-		$pay['goodsName'] = $params->pay->goodsName;  #商品名称
-		$pay['payDate'] = $params->pay->payDate;  # 交易日期（格式：yyyy-MM-dd）
-
-        ksort($pay); #排列数组 将数组已a-z排序
-        
-		$sign = md5($this->util->json_encode($pay) . $config['signKey']); #生成签名
-
-        //dd([ $pay, $config['signKey'] ]);
-
-		$pay['sign'] = strtoupper($sign); #设置签名
-		$data = $this->util->json_encode($pay); #将数组转换为JSON格式
-
-		Log::info('# 查詢支付订单 #' . $pay['orderNum']);
-
-		$post = array('data' => $data);
-        // 查帳接口url 未確定?
-        $is_return_data = $this->curl_post($config['payUrl'], $data);
-        $status = $this->services_json->decode($is_return_data); #将返回json数据转换为数组
-        Log::info('# query status #' . print_r($status, true));
     }
 
+    /**
+     * guzzle_http function
+     * @param [String] $url 發送網址
+     * @param [json] $data 傳送資料
+     * @return void
+     */
     private function guzzle_http($url, $data) 
     {
         Log::info('# guzzle_http start #' 
@@ -428,8 +380,41 @@ class Api500EasyPayService
         }
         return $res->getBody();
     }
+    /**
+     * Get QrCode
+     * @param [String] $tags 第三方支付別名
+     * @param [String] $type 組別(self::TYPERESPONSEGETQRCODE)
+     * @param [String] $base_id 唯一key
+     * @param [Int] $i 次數
+     * @return [json]
+     */
+    private function getResponseQrcode($tags, $type, $base_id, $i)
+    {
+        sleep(1);
+        $get_qrcode = $this->cache_service->getResponseQrcode($tags, $type, $base_id);
 
-    // 以下为检查动作
+        if ($get_qrcode == null && $i > 0) {
+            $i--;
+            self::getResponseQrcode($tags, $type, $base_id, $i);
+        }
+        Log::info('# get qrcode end #' 
+            . 'ts = ' . $i
+            . 'get_qrcode = ' . print_r($get_qrcode, true)
+            . 'FILE = ' . __FILE__ . 'LINE:' . __LINE__
+        );
+
+        if (!$get_qrcode) {
+            $get_qrcode['stateCode'] = self::ERRORCODE;
+            $get_qrcode['msg'] = self::ERRORMSG;
+        }
+        
+        return $get_qrcode;
+    }
+    /**
+     * 商戶設定檔檢查
+     * @param [array] $config
+     * @return boolean
+     */
     private function config_parames_check($config)
     {
 		if ($config['sCorpCode'] == '') {
@@ -479,7 +464,11 @@ class Api500EasyPayService
 
 		return true;	
 	}
-    
+    /**
+     * 訂單資料檢查
+     * @param [array] $config
+     * @return boolean
+     */
     private function pay_parames_check($parames)
     {
         if (empty($parames['version'])) {
@@ -514,7 +503,12 @@ class Api500EasyPayService
 
         return true;
     }
-    // 效验服务器返回数据
+    /**
+     * 簽名檢查
+     * @param [array] $row 資料
+     * @param [String] $signKey 原始簽名
+     * @return boolean
+     */
     private function is_sign($row, $signKey) { 
         if (!isset($row['sign'])) {
             return false;
