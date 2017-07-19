@@ -14,20 +14,24 @@ class Api500EasyPayCacheService
     {
         Cache::store('redis')->setPrefix('500EasyPay');
     }
-
-    public function setCache($tags, $type, $data)
+    /**
+     * Input data save redis
+     * @param [String] $tags 支付別名
+     * @param [String] $type 組別(input_base_id)
+     * @param [array] $data
+     * @return Base_id
+     */
+    public function setInputGetBaseId($tags, $type, $data)
     {
         $base_id = $tags . '_' . uniqid();
         
         Redis::rpush($tags . '_' . $type, $base_id);
         Cache::store('redis')
             ->tags([$tags])
-            ->add($base_id, $data, self::SURVIVAL_TIME);
+            ->forever($base_id, $data);
         
-        self::setMerNoOrdeNum($tags, $type, $data, $base_id);
-        
-        Log::info('# setCache #'  
-            . ', ['. $tags . ']' 
+        Log::info('# setInputGetBaseId #'  
+            . ', ['. $tags . '_' . $type . ']' 
             . ', base_id = ' . $base_id 
             . ', data = ' . print_r($data, true) 
             . ', FILE = ' .__FILE__ . 'LINE:' . __LINE__
@@ -35,17 +39,13 @@ class Api500EasyPayCacheService
 
         return $base_id;
     }
-
-    public function setMerNoOrdeNum($tags, $type, $data, $base_id)
-    {
-        $order_data = json_decode($data['data']['data']);
-        Redis::set(
-            $tags . '_' . $type . '_' . $data['config']['merNo'] . '_' .  $order_data->orderNum,
-            $base_id
-        );
-    }
-
-    public function getCache($tags, $type)
+    /**
+     * 取出存入的訂單, 把 base_id 合進去
+     * @param [String] $tags 支付別名
+     * @param [String] $type 組別(input_base_id)
+     * @return [array]
+     */
+    public function getInputCacheList($tags, $type)
     {
         $tasks = Redis::lrange($tags . '_' . $type, 0, -1);
         $task_data = [];
@@ -198,8 +198,15 @@ class Api500EasyPayCacheService
             ->tags([$tags . '_' . $type])
             ->get($base_id);
     }
-
-    public function hasQrcode($tags, $type, $merNo, $orderNum)
+    /**
+     * qrcode 是否已取回
+     * @param [String] $tags 支付別名
+     * @param [String] $type 組別(input_base_id)
+     * @param [String] $merNo 商戶號
+     * @param [Int] $orderNum 訂單編號
+     * @return base_id or null
+     */
+    public function hasQrcodeBaseId($tags, $type, $merNo, $orderNum)
     {
         return Redis::Get($tags . '_' . $type . '_' . $merNo . '_' . $orderNum);
     }
@@ -208,8 +215,13 @@ class Api500EasyPayCacheService
     {
         return Redis::lrange($tags . '_' . $type, 0, self::SENDLISTLIMIT);
     }
-
-    // TODO exception    
+    /**
+     * 回傳的Qrcode
+     * @param [String] $tags 支付別名
+     * @param [String] $type 組別(response_get_qrcode)
+     * @param [String] $base_id 唯一key
+     * @return [json]
+     */
     public function getResponseQrcode($tags, $type, $base_id)
     {
         return Cache::store('redis')

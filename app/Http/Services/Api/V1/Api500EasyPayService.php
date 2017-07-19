@@ -75,19 +75,18 @@ class Api500EasyPayService
     {
         $params = json_decode($params);
         
-        $has_qrcode = $this->cache_service->hasQrcode(
+        $has_qrcode_base_id = $this->cache_service->hasQrcodeBaseId(
             self::PAYMENTSERVICE,
             self::TYPEINPUTBASEID,
             $params->config->merNo,
             $params->pay->orderNum
         );
 
-        if ($has_qrcode) {
-            $base_id = $has_qrcode;
+        if ($has_qrcode_base_id) {
             return self::getResponseQrcode(
                 self::PAYMENTSERVICE,
                 self::TYPERESPONSEGETQRCODE,
-                $base_id,
+                $has_qrcode_base_id,
                 self::GETQRCODETIMES
             );
         }
@@ -145,12 +144,12 @@ class Api500EasyPayService
 
         $post = array('data' => $data);
         $input_data = ['url' => $config['payUrl'], 'data' => $post, 'config' => $config];
-        $base_id = $this->cache_service->setCache(
+        $base_id = $this->cache_service->setInputGetBaseId(
             self::PAYMENTSERVICE,
             self::TYPEINPUTBASEID,
             $input_data
         );
-
+        sleep(3);
         return self::getResponseQrcode(
             self::PAYMENTSERVICE,
             self::TYPERESPONSEGETQRCODE,
