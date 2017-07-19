@@ -46,7 +46,7 @@ class SaveRedisResponseCallBackData implements ShouldQueue
     public function handle(Api500EasyPayCacheService $Api500EasyPayCacheService)
     {
         $this->cache_service = $Api500EasyPayCacheService;
-        Log::info(print_r($this->redis_response_call_back, true));
+ 
         $call_back['base_id'] = $this->base_id;
         $call_back['merNo'] = $this->redis_response_call_back['merNo'];
         $call_back['orderNum'] = $this->redis_response_call_back['orderNum'];
@@ -63,12 +63,13 @@ class SaveRedisResponseCallBackData implements ShouldQueue
             . ', FILE = ' .__FILE__ . 'LINE:' . __LINE__
         );
 
-        $has_call_back = EasyPayResponseCallBack::OfBaseId($call_back['base_id'])->get();
+        $has_call_back = EasyPayResponseCallBack::ofBaseId($call_back['base_id'])->first();
 
-        if (!$has_call_back->isEmpty()) {
+        if (!empty($has_call_back)) {
             Log::info('# call_back data haved #'
-                    . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
-                );
+                . ', call back data = ' . print_r($has_call_back, true)
+                . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
+            );
             $this->job->delete();
             return;
         }
@@ -80,13 +81,17 @@ class SaveRedisResponseCallBackData implements ShouldQueue
             $update_waiting = EasyPayWaiting::ofBaseId($call_back['base_id'])
                 ->ofOrderStatus(self::GETQRCODE)
                 ->first();
+            if (empty($update_waiting)) {
+                Log::info('# update_waiting no data #'
+                . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
+                );
+                DB::rollback();
+                return false;    
+            }
             $update_waiting->call_back_id = $insert_call_back->id;
             $update_waiting->order_status = self::CALLBACK;
             $update_waiting->save();
-
             Log::info('# inster & update Mysql success #'
-                . ', insert_call_back = ' . print_r($insert_call_back, true)
-                . ', update_waiting_data = ' . print_r($update_waiting, true)
                 . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
             );
             DB::commit();
