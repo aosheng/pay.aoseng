@@ -34,7 +34,7 @@ class CreateEasyPayWaitingTable extends Migration
                 ->nullable()
                 ->comment('link respones_call_back'); 
 
-            $table->char('order_status', 2)->comment('1:waiting 2:get qrcode 3:call back success 4:fail'); //waiting fail success
+            $table->char('order_status', 2)->comment('1:waiting 2:get qrcode 3:call back success 4:fail 5:to admin'); //waiting fail success
             $table->timestamps();
         });
     }

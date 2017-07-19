@@ -3,30 +3,31 @@
 namespace App\Console\Commands;
 
 use App\Http\Services\Cache\Api500EasyPayCacheService;
+use App\jobs\SaveRedisResponseCallBackData;
 use App\jobs\SaveRedisResponseGetQrcodeData;
 use App\jobs\SaveRedisSendData;
 use Illuminate\Console\Command;
 
-class GetRedisSendData extends Command
+class GetRedisData extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'Redis_Action:GetSendData {payment} {action} {other?}';
+    protected $signature = 'Redis_Action:GetData {payment} {action} {other?}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Get Redis Third Pay Data : --option {payment} {action} {other?}';
+    protected $description = 'Get Redis Data : --option {payment} {action} {other?}';
 
     protected $Api500EasyPayCacheService;
     protected $tags;
     protected $action;
-
+    protected $other;
 
     /**
      * Create a new command instance.
@@ -49,6 +50,7 @@ class GetRedisSendData extends Command
     {   
         $this->tags = $this->argument('payment');
         $this->action = $this->argument('action');
+        $this->other = ($this->argument('other')) ? $this->argument('other') : null;
 
         if ($this->action == 'send') {
             $send_list = $this->cache_service->getSendListCache($this->tags, $this->action);
@@ -94,9 +96,9 @@ class GetRedisSendData extends Command
             }
         }
 
-        if ($this->action == 'response' && $this->other == 'call_back') {
+        if ($this->action == 'save' && $this->other == 'call_back') {
             $this->other = $this->argument('other');
-            $response_call_back_list = $this->cache_service->getResponseCallBackList(
+            $response_call_back_list = $this->cache_service->getSaveCallBackList(
                 $this->tags,
                 $this->action . '_' . $this->other
             );
@@ -111,7 +113,7 @@ class GetRedisSendData extends Command
                 return;
             }
             foreach ($response_call_back_list as $base_id) {
-                $response_call_back_data = $this->cache_service->getResponseCallBack($this->tags, $this->action . '_' . $this->other, $base_id);
+                $response_call_back_data = $this->cache_service->getSaveCallBack($this->tags, $this->action . '_' . $this->other, $base_id);
                 
                 if ($response_call_back_data) {
                     dispatch((new SaveRedisResponseCallBackData($base_id, $response_call_back_data))
