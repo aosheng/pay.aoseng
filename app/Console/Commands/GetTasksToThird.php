@@ -2,12 +2,11 @@
 
 namespace App\Console\Commands;
 
-use Carbon\Carbon;
-use Illuminate\Console\Command;
-
-use Log;
 use App\Http\Services\Cache\Api500EasyPayCacheService;
 use App\jobs\GetTasksToThird as GetQrcode;
+use Carbon\Carbon;
+use Illuminate\Console\Command;
+use Log;
 
 class GetTasksToThird extends Command
 {
@@ -16,18 +15,19 @@ class GetTasksToThird extends Command
      *
      * @var string
      */
-    protected $signature = 'Tothird:GetTasksToThird';
+    protected $signature = 'Tothird:GetTasksToThird {payment}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Send data to 500EasyPay be get Qrcode';
+    protected $description = 'Send data to Third get Qrcode --option {payment}';
 
     protected $Api500EasyPayCacheService;
     protected $tags;
     
+    const TYPEINPUTBASEID = 'input_base_id';
     /**
      * Create a new command instance.
      *
@@ -36,7 +36,6 @@ class GetTasksToThird extends Command
     public function __construct(Api500EasyPayCacheService $Api500EasyPayCacheService)
     {
         parent::__construct();
-        $this->tags = 'Api500EasyPay';
         $this->cache_service = $Api500EasyPayCacheService;
     }
 
@@ -47,7 +46,9 @@ class GetTasksToThird extends Command
      */
     public function handle()
     {
-        $task_data = $this->cache_service->getCache($this->tags, 'input_base_id');
+        $this->tags = $this->argument('payment');
+
+        $task_data = $this->cache_service->getInputCacheList($this->tags, self::TYPEINPUTBASEID);
        
         Log::info('# Tothird:GetTasksToThird start #' 
             . ', task_data = ' . print_r($task_data, true)
@@ -56,11 +57,15 @@ class GetTasksToThird extends Command
 
         if (empty($task_data)) {
             Log::warning('# Tothird:GetTasksToThird warning # No data'
-                . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__);
+                . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
+            );
             return false;
         }
 
-        Log::info('get input redis order : ' . __FILE__ . 'LINE:' . __LINE__);
+        Log::info('# get input redis order # start getQrcode job ' 
+            . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
+        );
+
         foreach ($task_data as $data) {
             dispatch((new getQrcode($data))
                 ->onQueue('get_qrcode'));
