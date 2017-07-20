@@ -50,7 +50,12 @@ class GetTasksToThird implements ShouldQueue
             . ', data = ' . print_r($this->data, true)
             . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
         );
-        $this->cache_service->setSendCache($this->tags, $this->type, $this->data['base_id'], $this->data);
+        $this->cache_service->setSendCache(
+            $this->tags,
+            $this->type,
+            $this->data['base_id'],
+            $this->data
+        );
         
         Log::info('# start pay # FILE: ' . __FILE__ . 'LINE: ' . __LINE__);
         $status = $this->service->pay(

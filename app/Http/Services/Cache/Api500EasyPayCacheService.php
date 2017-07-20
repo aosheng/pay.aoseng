@@ -9,6 +9,7 @@ class Api500EasyPayCacheService
 {
     const SURVIVAL_TIME = 1440;
     const SENDLISTLIMIT = 200;
+    const TYPEWAITCALLBACK = 'wait_call_back';
     
     public function __construct()
     {
@@ -27,7 +28,7 @@ class Api500EasyPayCacheService
         
         Redis::rpush($tags . '_' . $type, $base_id);
         Cache::store('redis')
-            ->tags([$tags])
+            ->tags([$tags . '_' . $type])
             ->forever($base_id, $data);
         
         Log::info('# setInputGetBaseId #'  
@@ -67,12 +68,12 @@ class Api500EasyPayCacheService
 
         foreach ($tasks as $task_base_id) {
             $get_task = Cache::store('redis')
-                ->tags([$tags])
+                ->tags([$tags . '_' . $type])
                 ->get($task_base_id);
             
             if (!$get_task) {
                 Log::warning('# get cache warning #' 
-                    . ', ['. $tags . ']' 
+                    . ', ['. $tags . '_' . $type . ']' 
                     . ', base_id = ' . $task_base_id 
                     . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
                 );
@@ -92,17 +93,24 @@ class Api500EasyPayCacheService
 
         return $return_data;
     }
-
+    /**
+     * 儲存送去第三方的資料
+     * @param [String] $tags
+     * @param [String] $type
+     * @param [String] $base_id
+     * @param [array] $data
+     * @return null
+     */
     public function setSendCache($tags, $type, $base_id, $data)
     {
         Redis::rpush($tags . '_' . $type, $base_id);
         Cache::store('redis')
             ->tags([$tags . '_' . $type])
-            ->add($base_id, $data, self::SURVIVAL_TIME);
+            ->forever($base_id, $data);
         
         Log::info('# setSendCache success #'
             . ', ['. $tags . '_' . $type .']'
-            . ', base_id = '. $base_id 
+            . ', base_id = ' . $base_id 
             . ', data = ' . print_r($data, true) 
             . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
         );
@@ -112,7 +120,14 @@ class Api500EasyPayCacheService
     {
         return Redis::lrange($tags . '_' . $type, 0, self::SENDLISTLIMIT);
     }
-    
+    /**
+     * get qrcode 回傳資訊寫入
+     * @param [String] $tags 支付別名
+     * @param [String] $type 組別(response_get_qrcode)
+     * @param [String] $base_id 唯一key
+     * @param [array] $data 第三方狀態資料
+     * @return null
+     */
     public function setResponseCache($tags, $type, $base_id, $data)
     {
         Redis::rpush($tags . '_' . $type, $base_id);
@@ -130,16 +145,11 @@ class Api500EasyPayCacheService
         if ($data['stateCode'] === '00') {
             self::setCallBackWaitCache(
                 $tags,
-                'wait_call_back',
+                self::TYPEWAITCALLBACK,
                 $base_id,
                 $data
             );
         }
-
-        Log::info('# setCallBackWaitCache #' 
-            . ', ['. $tags . '_wait_call_back]' 
-            . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
-        );
     }
 
     public function saveCallBackCache($tags, $type, $base_id, $data)
@@ -228,43 +238,48 @@ class Api500EasyPayCacheService
             ->tags([$tags . '_' . $type])
             ->get($base_id);
     }
-    // TODO exception    
+    /**
+     * 刪除 redis list key
+     * @param [String] $tags 支付別名
+     * @param [String] $type 組別
+     * @param [String] $base_id 唯一key
+     * @return boolean
+     */  
     public function deleteListCache($tags, $type, $base_id)
     {
-        $is_delete = Redis::LREM($tags . '_' . $type, 0, $base_id);
-        Log::info('# delete list #'
-            . ', is_delete = ' . $is_delete
-            . ', [' . $tags . '_' . $type .']'
-            . ', base_id = ' . $base_id 
-            . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
-        );
+        return Redis::LREM($tags . '_' . $type, 0, $base_id);
     }
-    // TODO exception
+    /**
+     * 刪除 redis tags 儲存資料
+     * @param [String] $tags 支付別名
+     * @param [String] $type 組別
+     * @param [String] $base_id 唯一key
+     * @return boolean
+     */  
     public function deleteTagsCache($tags, $type, $base_id)
     {
-        if (!$type) {
-            $is_delete_tags = Cache::store('redis')
-                ->tags([$tags])
-                ->forget($base_id);
-        } else {
-            $is_delete_tags = Cache::store('redis')
-                ->tags([$tags. '_' . $type])
-                ->forget($base_id);
-        }
-        
-        Log::info('# forget tags key#'
-            . ', is_delete_tags = ' . $is_delete_tags
-            . ', [' . $tags . '_' . $type .']' 
-            . ', base_id = ' . $base_id 
-            . ', FILE = '. __FILE__ . 'LINE:' . __LINE__
-        );
+        return Cache::store('redis')
+            ->tags([$tags. '_' . $type])
+            ->forget($base_id);
     }
-
+    /**
+     * 儲存等待付款的資訊
+     * @param [String] $tags 支付別名
+     * @param [String] $type 組別(wait_call_back)
+     * @param [String] $base_id 唯一key
+     * @param [array] $data 第三方狀態資料
+     * @return null
+     */
     private function setCallBackWaitCache($tags, $type, $base_id, $data)
     {
         Redis::rpush($tags . '_' . $type, $data['merNo'] . '_' . $data['orderNum']);
         Cache::store('redis')
             ->tags([$tags . '_' . $type])
             ->forever($data['merNo'] . '_' . $data['orderNum'], $base_id);
+
+        Log::info('# setCallBackWaitCache #' 
+            . ', ['. $tags . '_' . $type .']' 
+            . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
+        );
     }
 }
