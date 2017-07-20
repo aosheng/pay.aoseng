@@ -67,7 +67,7 @@ class GetTasksToThird extends Command
         );
 
         foreach ($task_data as $data) {
-            dispatch((new getQrcode($data))
+            dispatch((new getQrcode($this->tags, 'send', $data))
                 ->onQueue('get_qrcode'));
         }
         echo date("Y-m-d H:i:s")."\n";
