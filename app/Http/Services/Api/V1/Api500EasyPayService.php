@@ -394,7 +394,7 @@ class Api500EasyPayService
 
         if ($get_qrcode == null && $i > 0) {
             $i--;
-            self::getResponseQrcode($tags, $type, $base_id, $i);
+            $get_qrcode = self::getResponseQrcode($tags, $type, $base_id, $i);
         }
         Log::info('# get qrcode end #' 
             . 'ts = ' . $i
