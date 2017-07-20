@@ -7,6 +7,7 @@ use App\jobs\SendCallBackToAdmin;
 use Cache;
 use Crypt;
 use Dingo\Api\Routing\Helpers;
+use Exception;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
 use Illuminate\Support\Facades\Redis;
@@ -190,24 +191,46 @@ class Api500EasyPayService
             $status['stateCode'] = '999';
             $status['msg'] = '返回签名验证失败';
         }
-        // 再想想要不要包進cache_service？
-        $this->cache_service->setResponseCache(
-            self::PAYMENTSERVICE,
-            self::TYPERESPONSEGETQRCODE,
-            $base_id,
-            $status
-        );
-        $this->cache_service->deleteListCache(
-            self::PAYMENTSERVICE,
-            self::TYPEINPUTBASEID,
-            $base_id
-        );
-        $this->cache_service->deleteTagsCache(self::PAYMENTSERVICE, '', $base_id);
-   
         Log::info('# get qrcode status #' 
             . ', status = ' . print_r($status, true) 
             . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
         );
+        try {
+            $this->cache_service->setResponseCache(
+                self::PAYMENTSERVICE,
+                self::TYPERESPONSEGETQRCODE,
+                $base_id,
+                $status
+            );
+            
+            $is_delete = $this->cache_service->deleteListCache(
+                self::PAYMENTSERVICE,
+                self::TYPEINPUTBASEID,
+                $base_id
+            );
+            Log::info('# delete list #'
+                . ', is_delete = ' . $is_delete
+                . ', [' . self::PAYMENTSERVICE . '_' . self::TYPEINPUTBASEID .']'
+                . ', base_id = ' . $base_id 
+                . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
+            );
+            $is_delete_tags = $this->cache_service->deleteTagsCache(
+                self::PAYMENTSERVICE,
+                self::TYPEINPUTBASEID,
+                $base_id
+            );      
+            Log::info('# forget tags data#'
+                . ', is_delete_tags = ' . $is_delete_tags
+                . ', [' . self::PAYMENTSERVICE . '_' . self::TYPEINPUTBASEID .']' 
+                . ', base_id = ' . $base_id 
+                . ', FILE = '. __FILE__ . 'LINE:' . __LINE__
+            );
+        } catch (\Exception $exception) {
+            Log::wanring('# get qrcode status #' 
+                . ', status = ' . print_r($status, true) 
+                . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
+            );    
+        }
 
         return $status;
     }
