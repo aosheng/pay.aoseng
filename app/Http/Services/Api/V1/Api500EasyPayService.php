@@ -219,7 +219,7 @@ class Api500EasyPayService
                 self::TYPEINPUTBASEID,
                 $base_id
             );      
-            Log::info('# forget tags data#'
+            Log::info('# forget tags data #'
                 . ', is_delete_tags = ' . $is_delete_tags
                 . ', [' . self::PAYMENTSERVICE . '_' . self::TYPEINPUTBASEID .']' 
                 . ', base_id = ' . $base_id 
@@ -228,6 +228,7 @@ class Api500EasyPayService
         } catch (\Exception $exception) {
             Log::wanring('# get qrcode status #' 
                 . ', status = ' . print_r($status, true) 
+                . ', Message = ' . $exceptione->getMessage()
                 . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
             );    
         }
@@ -270,10 +271,10 @@ class Api500EasyPayService
                 . ', orderNum : ' . $params->orderNum
                 . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
             );
-            return false;
+            return 0;
         }
 
-        $base_id = $this->cache_service->getCallBackWaitCache(
+        $base_id = $this->cache_service->getCallBackWaitBaseId(
             self::PAYMENTSERVICE,
             self::TYPEWAITCALLBACK,
             $params->merNo,
@@ -287,7 +288,7 @@ class Api500EasyPayService
                 . ', orderNum' . $params->orderNum
                 . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
             );
-            return false;
+            throw new \Exception('Call back fail, base_id is lost');
         }
 
         Log::info('base_id = ' . $base_id);
@@ -309,13 +310,11 @@ class Api500EasyPayService
                     . ', base_id' .  $base_id
                     . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
                 );
-                return false;
+                throw new \Exception('Call back fail, send data is lost');
             }
             $sign_key = Crypt::decrypt($get_send_cache->config_signKey);
             $amount = $get_send_cache->amount;
         }
-
-        Log::info('# get_send_cache # ' . print_r($get_send_cache, true));
 
         if (!$sign_key) {
             $sign_key = $get_send_cache['config']['signKey'];
@@ -330,7 +329,7 @@ class Api500EasyPayService
                 . ', call back amount = ' . $params->amount
                 . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
             );
-            return false;
+            throw new \Exception('Call back fail, amount is different');
         } 
 
         $call_back['merNo'] = $params->merNo;
@@ -351,14 +350,19 @@ class Api500EasyPayService
                 . ', call_back = ' . print_r($call_back, true) 
                 . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
             );
-            return false;
+            throw new \Exception('Call back fail, signkey is different');
         }
         // 送出時有 *100, callback時要 /100
         $call_back['amount'] = (int) $call_back['amount'] / 100;
 
         // 第三方call back 訊息存入redis , 發通知給後台接口
-        dispatch((new SendCallBackToAdmin($base_id, $call_back))
-            ->onQueue('send_call_back_to_admin'));
+        dispatch((new SendCallBackToAdmin(
+            self::PAYMENTSERVICE,
+            self::TYPESAVECALLBACK,
+            $base_id,
+            $call_back
+        ))->onQueue('send_call_back_to_admin'));
+        
         Log::info('# To SendCallBackToAdmin job success #');    
             
         return 0;

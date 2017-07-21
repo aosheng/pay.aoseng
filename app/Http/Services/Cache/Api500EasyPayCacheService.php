@@ -44,7 +44,7 @@ class Api500EasyPayCacheService
      * 取出存入的訂單, 把 base_id 合進去
      * @param [String] $tags 支付別名
      * @param [String] $type 組別(input_base_id)
-     * @return [array]
+     * @return array
      */
     public function getInputCacheList($tags, $type)
     {
@@ -151,20 +151,27 @@ class Api500EasyPayCacheService
             );
         }
     }
-
+    /**
+     * 儲存第三方回傳付款訊息
+     * @param [String] $tags 支付別名
+     * @param [String] $type 組別(save_call_back)
+     * @param [String] $base_id 唯一key
+     * @param [json] $data
+     * @return null
+     */
     public function saveCallBackCache($tags, $type, $base_id, $data)
     {
-        Log::info('# start call_back #'
-            . ', [' . $tags . '_' . $type . ']'
-            . ', data = ' . print_r($data, true)
-            . ', base_id = ' . $base_id
-            . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
-        );
         Redis::rpush($tags . '_' . $type, $base_id);
         
         Cache::store('redis')
             ->tags([$tags . '_' . $type])
             ->forever($base_id, $data);
+         Log::info('# save call_back #'
+            . ', [' . $tags . '_' . $type . ']'
+            . ', data = ' . print_r($data, true)
+            . ', base_id = ' . $base_id
+            . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
+        );    
     }
 
     public function getSaveCallBackList($tags, $type)
@@ -178,30 +185,42 @@ class Api500EasyPayCacheService
             ->tags([$tags . '_' . $type])
             ->get($base_id);
     }
-
     /**
      * Wait Call Back function
      *
-     * @param [Str] $tags
-     * @param [Str] $type
-     * @param [Str] $merNo
-     * @param [Num] $orderNum
-     * @return base_id
+     * @param [String] $tags 支付別名
+     * @param [String] $type 組別(wait_call_back)
+     * @param [String] $merNo 商戶號
+     * @param [Int] $orderNum 訂單編號
+     * @return null or base_id 
      */
-    public function getCallBackWaitCache($tags, $type, $merNo, $orderNum)
+    public function getCallBackWaitBaseId($tags, $type, $merNo, $orderNum)
     {
         return Cache::store('redis')
             ->tags([$tags . '_' . $type])
             ->get($merNo . '_' . $orderNum);
     }
-
+    /**
+     * 確認call back 是否已送回
+     * @param [String] $tags 支付別名
+     * @param [String] $type 組別(save_call_back)
+     * @param [String] $merNo 商戶號
+     * @param [Int] $orderNum 訂單編號
+     * @return null or array
+     */
     public function checkCallBackCache($tags, $type, $merNo, $orderNum)
     {
         return Cache::store('redis')
             ->tags([$tags . '_' . $type])
             ->get($merNo . '_' . $orderNum);
     }
-
+    /**
+     * 取出送至第三方資訊
+     * @param [String] $tags 支付別名
+     * @param [String] $type 組別(send)
+     * @param [String] $base_id 唯一key
+     * @return array
+     */
     public function getSendCache($tags, $type, $base_id)
     {
         return Cache::store('redis')
@@ -230,7 +249,7 @@ class Api500EasyPayCacheService
      * @param [String] $tags 支付別名
      * @param [String] $type 組別(response_get_qrcode)
      * @param [String] $base_id 唯一key
-     * @return [json]
+     * @return json
      */
     public function getResponseQrcode($tags, $type, $base_id)
     {

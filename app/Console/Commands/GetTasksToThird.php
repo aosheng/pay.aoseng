@@ -28,6 +28,8 @@ class GetTasksToThird extends Command
     protected $tags;
     
     const TYPEINPUTBASEID = 'input_base_id';
+    const TYPESEND = 'send';
+
     /**
      * Create a new command instance.
      *
@@ -67,7 +69,7 @@ class GetTasksToThird extends Command
         );
 
         foreach ($task_data as $data) {
-            dispatch((new getQrcode($this->tags, 'send', $data))
+            dispatch((new getQrcode($this->tags, self::TYPESEND, $data))
                 ->onQueue('get_qrcode'));
         }
         echo date("Y-m-d H:i:s")."\n";
