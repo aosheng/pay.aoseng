@@ -15,9 +15,9 @@ class GetTasksToThird implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    protected $tags;
-    protected $type;
-    protected $data;
+    private $tags;
+    private $type;
+    private $data;
 
     public $tries = 3;
     public $timeout = 20;
@@ -27,12 +27,11 @@ class GetTasksToThird implements ShouldQueue
      *
      * @return void
      */
-    public function __construct()
+    public function __construct($tags, $type, $data)
     {
-        $args = func_get_args();
-        $this->tags = $args[0];
-        $this->type = $args[1];
-        $this->data = $args[2];
+        $this->tags = $tags;
+        $this->type = $type;
+        $this->data = $data;
     }
 
     /**
