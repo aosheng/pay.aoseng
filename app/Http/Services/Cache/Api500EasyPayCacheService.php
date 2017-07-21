@@ -95,9 +95,9 @@ class Api500EasyPayCacheService
     }
     /**
      * 儲存送去第三方的資料
-     * @param [String] $tags
-     * @param [String] $type
-     * @param [String] $base_id
+     * @param [String] $tags 支付別名
+     * @param [String] $type 組別(send)
+     * @param [String] $base_id 唯一key
      * @param [array] $data
      * @return null
      */
@@ -115,8 +115,13 @@ class Api500EasyPayCacheService
             . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
         );
     }
-
-    public function getSendListCache($tags, $type)
+    /**
+     *  get send list
+     * @param [type] $tags 支付別名
+     * @param [type] $type 組別(send)
+     * @return boolean
+     */
+    public function getSendList($tags, $type)
     {
         return Redis::lrange($tags . '_' . $type, 0, self::SENDLISTLIMIT);
     }
@@ -173,12 +178,23 @@ class Api500EasyPayCacheService
             . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
         );    
     }
-
+    /**
+     * 取得成功支付回傳列表
+     * @param [type] $tags 支付別名
+     * @param [type] $type 組別(save_call_back)
+     * @return array
+     */
     public function getSaveCallBackList($tags, $type)
     {
         return Redis::lrange($tags . '_' . $type, 0, self::SENDLISTLIMIT);
     }
-
+    /**
+     * 取得取得成功支付資訊
+     * @param [type] $tags 支付別名
+     * @param [type] $type 組別(save_call_back)
+     * @param [type] $base_id 唯一key
+     * @return null or json
+     */
     public function getSaveCallBack($tags, $type, $base_id)
     {
         return Cache::store('redis')
@@ -187,7 +203,6 @@ class Api500EasyPayCacheService
     }
     /**
      * Wait Call Back function
-     *
      * @param [String] $tags 支付別名
      * @param [String] $type 組別(wait_call_back)
      * @param [String] $merNo 商戶號
@@ -239,7 +254,12 @@ class Api500EasyPayCacheService
     {
         return Redis::Get($tags . '_' . $type . '_' . $merNo . '_' . $orderNum);
     }
-
+    /**
+     * 取得qrcode 清單的 base_id
+     * @param [type] $tags 支付別名
+     * @param [type] $type 組別(response_get_qrcode)
+     * @return array
+     */
     public function getResponseQrcodeList($tags, $type)
     {
         return Redis::lrange($tags . '_' . $type, 0, self::SENDLISTLIMIT);
