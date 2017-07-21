@@ -18,8 +18,10 @@ class SaveRedisResponseCallBackData implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    protected $base_id;
-    protected $redis_response_call_back;
+    private $tags;
+    private $type;
+    private $base_id;
+    private $redis_response_call_back;
 
     public $tries = 3;
 
@@ -31,8 +33,10 @@ class SaveRedisResponseCallBackData implements ShouldQueue
      *
      * @return void
      */
-    public function __construct($base_id, $redis_response_call_back)
+    public function __construct($tags, $type, $base_id, $redis_response_call_back)
     {
+        $this->tags = $tags;
+        $this->type = $type;
         $this->base_id = $base_id;
         $this->redis_response_call_back = $redis_response_call_back;
     }
@@ -42,7 +46,6 @@ class SaveRedisResponseCallBackData implements ShouldQueue
      *
      * @return void
      */
-    // TODO: 把確實有回應的更新
     public function handle(Api500EasyPayCacheService $Api500EasyPayCacheService)
     {
         $this->cache_service = $Api500EasyPayCacheService;
@@ -92,7 +95,32 @@ class SaveRedisResponseCallBackData implements ShouldQueue
             $update_waiting->order_status = self::CALLBACK;
             $update_waiting->save();
             Log::info('# inster & update Mysql success #'
+                . ', insert_call_back = ' . print_r($insert_call_back, true)
+                . ', update_waiting_data = ' . print_r($update_waiting, true)
                 . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
+            );
+
+            $is_delete = $this->cache_service->deleteListCache(
+                $this->tags,
+                $this->type,
+                $call_back['base_id']
+            );
+            Log::info('# delete list #'
+                . ', is_delete = ' . $is_delete
+                . ', [' . $this->tags . '_' . $this->type .']'
+                . ', base_id = ' . $call_back['base_id']
+                . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
+            );
+            $is_delete_tags = $this->cache_service->deleteTagsCache(
+                $this->tags,
+                $this->type,
+                $call_back['base_id']
+            );
+            Log::info('# forget tags data #'
+                . ', is_delete_tags = ' . $is_delete_tags
+                . ', [' . $this->tags . '_' . $this->type .']' 
+                . ', base_id = ' . $call_back['base_id']
+                . ', FILE = '. __FILE__ . 'LINE:' . __LINE__
             );
             DB::commit();
         } catch (QueryException $exception) {    

@@ -19,7 +19,9 @@ class SaveRedisSendData implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    protected $redis_send_data;
+    private $tags;
+    private $type;
+    private $redis_send_data;
 
     public $tries = 3;
 
@@ -29,14 +31,16 @@ class SaveRedisSendData implements ShouldQueue
      *
      * @return void
      */
-    public function __construct($redis_send_data)
+    public function __construct($tags, $type, $redis_send_data)
     {
+        $this->tags = $tags;
+        $this->type = $type;
         $this->redis_send_data = $redis_send_data;
     }
 
     /**
      * Execute the job.
-     *
+     * Get Redis send data To Mysql
      * @return void
      */
     public function handle(Api500EasyPayCacheService $Api500EasyPayCacheService)
@@ -98,15 +102,35 @@ class SaveRedisSendData implements ShouldQueue
                 . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
             );
 
-            $this->cache_service->deleteListCache('Api500EasyPay', 'send', $redis_send_data['base_id']);
-            $this->cache_service->deleteTagsCache('Api500EasyPay', 'send', $redis_send_data['base_id']);
+            $is_delete = $this->cache_service->deleteListCache(
+                $this->tags,
+                $this->type,
+                $redis_send_data['base_id']
+            );
+            Log::info('# delete list #'
+                . ', is_delete = ' . $is_delete
+                . ', [' . $this->tags . '_' . $this->type .']'
+                . ', base_id = ' . $redis_send_data['base_id']
+                . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
+            );
+            $is_delete_tags = $this->cache_service->deleteTagsCache(
+                $this->tags,
+                $this->type,
+                $redis_send_data['base_id']
+            );
+            Log::info('# forget tags data #'
+                . ', is_delete_tags = ' . $is_delete_tags
+                . ', [' . $this->tags . '_' . $this->type .']' 
+                . ', base_id = ' . $redis_send_data['base_id']
+                . ', FILE = '. __FILE__ . 'LINE:' . __LINE__
+            );
             DB::commit();
-        } catch (\QueryException $exception) {
-            DB::rollback();
+        } catch (\QueryException $exception) {           
             Log::error('# inster Mysql error #'
                 . ', Exception = ' . print_r($exception, true)
                 . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
             );
+            DB::rollback();
         }
     }
 

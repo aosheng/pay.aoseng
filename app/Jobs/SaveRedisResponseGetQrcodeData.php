@@ -20,8 +20,10 @@ class SaveRedisResponseGetQrcodeData implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    protected $base_id;
-    protected $redis_response_get_qrcode;
+    private $tags;
+    private $type;
+    private $base_id;
+    private $redis_response_get_qrcode;
 
     public $tries = 3;
 
@@ -32,15 +34,17 @@ class SaveRedisResponseGetQrcodeData implements ShouldQueue
      *
      * @return void
      */
-    public function __construct($base_id, $redis_response_get_qrcode)
+    public function __construct($tags, $type, $base_id, $redis_response_get_qrcode)
     {
+        $this->tags = $tags;
+        $this->type = $type;
         $this->base_id = $base_id;
         $this->redis_response_get_qrcode = $redis_response_get_qrcode;
     }
 
     /**
      * Execute the job.
-     *
+     * Get Redis qrcode data To Mysql
      * @return void
      */
     public function handle(Api500EasyPayCacheService $Api500EasyPayCacheService)
@@ -85,15 +89,35 @@ class SaveRedisResponseGetQrcodeData implements ShouldQueue
                 . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
             );
 
-            $this->cache_service->deleteListCache('Api500EasyPay', 'response_get_qrcode', $get_qrcode['base_id']);
-            $this->cache_service->deleteTagsCache('Api500EasyPay', 'response_get_qrcode', $get_qrcode['base_id']);
+            $is_delete = $this->cache_service->deleteListCache(
+                $this->tags,
+                $this->type,
+                $get_qrcode['base_id']
+            );
+            Log::info('# delete list #'
+                . ', is_delete = ' . $is_delete
+                . ', [' . $this->tags . '_' . $this->type .']'
+                . ', base_id = ' . $get_qrcode['base_id']
+                . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
+            );
+            $is_delete_tags = $this->cache_service->deleteTagsCache(
+                $this->tags,
+                $this->type,
+                $get_qrcode['base_id']
+            );
+            Log::info('# forget tags data #'
+                . ', is_delete_tags = ' . $is_delete_tags
+                . ', [' . $this->tags . '_' . $this->type .']' 
+                . ', base_id = ' . $get_qrcode['base_id']
+                . ', FILE = '. __FILE__ . 'LINE:' . __LINE__
+            );
             DB::commit();
         } catch (\QueryException $exception) {
-            DB::rollback();
             Log::error('# inster Mysql error #'
                 . ', Exception = ' . print_r($exception, true)
                 . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
             );
+            DB::rollback();
         }
     }
 
