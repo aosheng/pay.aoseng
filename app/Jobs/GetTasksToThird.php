@@ -2,33 +2,35 @@
 
 namespace App\Jobs;
 
+use App\Http\Services\Api\V1\Api500EasyPayService;
+use App\Http\Services\Cache\Api500EasyPayCacheService;
 use Illuminate\Bus\Queueable;
-use Illuminate\Queue\SerializesModels;
-use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
-
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\SerializesModels;
 use Log;
-use App\Http\Services\Cache\Api500EasyPayCacheService;
-use App\Http\Services\Api\V1\Api500EasyPayService;
 
 class GetTasksToThird implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    protected $Api500EasyPayService;
-    protected $Api500EasyPayCacheService;
-    protected $data;
+    private $tags;
+    private $type;
+    private $data;
 
     public $tries = 3;
+    public $timeout = 20;
 
     /**
      * Create a new job instance.
      *
      * @return void
      */
-    public function __construct($data)
+    public function __construct($tags, $type, $data)
     {
+        $this->tags = $tags;
+        $this->type = $type;
         $this->data = $data;
     }
 
@@ -37,7 +39,6 @@ class GetTasksToThird implements ShouldQueue
      *
      * @return void
      */
-    //todo send order to third
     public function handle(Api500EasyPayService $Api500EasyPayService, Api500EasyPayCacheService $Api500EasyPayCacheService)
     {
         $this->cache_service = $Api500EasyPayCacheService;
@@ -48,9 +49,14 @@ class GetTasksToThird implements ShouldQueue
             . ', data = ' . print_r($this->data, true)
             . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
         );
-        $this->cache_service->setSendCache('Api500EasyPay', 'send', $this->data['base_id'], $this->data);
+        $this->cache_service->setSendCache(
+            $this->tags,
+            $this->type,
+            $this->data['base_id'],
+            $this->data
+        );
         
-        Log::info('#start pay # FILE: ' . __FILE__ . 'LINE: ' . __LINE__);
+        Log::info('# start pay # FILE: ' . __FILE__ . 'LINE: ' . __LINE__);
         $status = $this->service->pay(
             $this->data['url'],
             $this->data['data'],
@@ -68,7 +74,8 @@ class GetTasksToThird implements ShouldQueue
     public function failed()
     {
         // Called when the job is failing...
-        Log::error('# GetTasksToThird Job fail #' 
+        Log::error('# GetTasksToThird Job fail #'
+            . ', tags = ' . print_r($this->tags, true)  
             . ', data = ' . print_r($this->data, true) 
             . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
         );

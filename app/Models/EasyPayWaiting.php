@@ -9,13 +9,13 @@ class EasyPayWaiting extends Model
     protected $table = "easy_pay_waiting";
     protected $guarded = ['id'];
 
-    public function scopeOfBaseId($base_id)
+    public function scopeOfBaseId($query, $base_id)
     {
-        return self::where('base_id', $base_id);
+        return $query->where('base_id', $base_id);
     }
 
-    public function scopeOfOrderStatus($status_code)
+    public function scopeOfOrderStatus($query, $status_code)
     {
-        return self::where('order_status', $status_code);
+        return $query->where('order_status', $status_code);
     }
 }

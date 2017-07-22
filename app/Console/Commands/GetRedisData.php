@@ -52,8 +52,8 @@ class GetRedisData extends Command
         $this->action = $this->argument('action');
         $this->other = ($this->argument('other')) ? $this->argument('other') : null;
 
-        if ($this->action == 'send') {
-            $send_list = $this->cache_service->getSendListCache($this->tags, $this->action);
+        if ($this->action === 'send') {
+            $send_list = $this->cache_service->getSendList($this->tags, $this->action);
             if (empty($send_list)) {
                 $this->info('Can not find ' 
                     . $this->argument('payment') 
@@ -63,15 +63,15 @@ class GetRedisData extends Command
                 return;
             }
             foreach ($send_list as $base_id) {
+                // TODO:這裡會有N+1的問題
                 $redis_send_data = $this->cache_service->getSendCache($this->tags, $this->action, $base_id);
                 
-                dispatch((new SaveRedisSendData($redis_send_data))
+                dispatch((new SaveRedisSendData($this->tags, $this->action, $redis_send_data))
                     ->onQueue('get_redis_insert_mysql'));
             }
         }
 
-        if ($this->action == 'response' && $this->other == 'get_qrcode') {
-            $this->other = $this->argument('other');
+        if ($this->action === 'response' && $this->other === 'get_qrcode') {
             $response_get_qrcode_list = $this->cache_service->getResponseQrcodeList(
                 $this->tags,
                 $this->action . '_' . $this->other
@@ -86,18 +86,27 @@ class GetRedisData extends Command
                 );
                 return;
             }
+
             foreach ($response_get_qrcode_list as $base_id) {
-                $response_get_qrcode_data = $this->cache_service->getResponseQrcode($this->tags, $this->action . '_' . $this->other, $base_id);
+                // TODO:這裡會有N+1的問題
+                $response_get_qrcode_data = $this->cache_service->getResponseQrcode(
+                    $this->tags,
+                    $this->action . '_' . $this->other,
+                    $base_id
+                );
                 
                 if ($response_get_qrcode_data) {
-                    dispatch((new SaveRedisResponseGetQrcodeData($base_id, $response_get_qrcode_data))
-                        ->onQueue('get_redis_insert_mysql'));
+                    dispatch((new SaveRedisResponseGetQrcodeData(
+                        $this->tags,
+                        $this->action . '_' . $this->other,
+                        $base_id,
+                        $response_get_qrcode_data
+                    ))->onQueue('get_redis_insert_mysql'));
                 }
             }
         }
 
-        if ($this->action == 'save' && $this->other == 'call_back') {
-            $this->other = $this->argument('other');
+        if ($this->action === 'save' && $this->other === 'call_back') {
             $response_call_back_list = $this->cache_service->getSaveCallBackList(
                 $this->tags,
                 $this->action . '_' . $this->other
@@ -113,11 +122,20 @@ class GetRedisData extends Command
                 return;
             }
             foreach ($response_call_back_list as $base_id) {
-                $response_call_back_data = $this->cache_service->getSaveCallBack($this->tags, $this->action . '_' . $this->other, $base_id);
+                // TODO:這裡會有N+1的問題
+                $response_call_back_data = $this->cache_service->getSaveCallBack(
+                    $this->tags, 
+                    $this->action . '_' . $this->other,
+                    $base_id
+                );
                 
                 if ($response_call_back_data) {
-                    dispatch((new SaveRedisResponseCallBackData($base_id, $response_call_back_data))
-                        ->onQueue('get_redis_insert_mysql'));
+                    dispatch((new SaveRedisResponseCallBackData(
+                        $this->tags, 
+                        $this->action . '_' . $this->other,
+                        $base_id,
+                        $response_call_back_data
+                    ))->onQueue('get_redis_insert_mysql'));
                 }
             }
         }

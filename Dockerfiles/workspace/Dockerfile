@@ -40,7 +40,13 @@ RUN echo "" >> ~/.bashrc && \
     echo "source /root/aliases.sh" >> ~/.bashrc && \
     echo "" >> ~/.bashrc
 
+#####################################
+# Crontab
+#####################################
+USER root
 
+COPY ./crontab /etc/cron.d
+RUN chmod -R 644 /etc/cron.d
 
 #nvm
 ENV NVM_DIR /root/.nvm
