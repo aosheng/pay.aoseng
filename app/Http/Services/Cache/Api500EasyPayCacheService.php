@@ -4,8 +4,9 @@ namespace App\Http\Services\Cache;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Redis;
 use Log;
+use App\Http\Cache\BaseServiceCache;
 
-class Api500EasyPayCacheService
+class Api500EasyPayCacheService  extends BaseServiceCache
 {
     const SURVIVAL_TIME = 1440;
     const SENDLISTLIMIT = 200;
@@ -13,7 +14,7 @@ class Api500EasyPayCacheService
     
     public function __construct()
     {
-        Cache::store('redis')->setPrefix('500EasyPay');
+      parent::setPrtefix('500EasyPay');
     }
     /**
      * Input data save redis
@@ -24,12 +25,15 @@ class Api500EasyPayCacheService
      */
     public function setInputGetBaseId($tags, $type, $data)
     {
-        $base_id = $tags . '_' . uniqid();
+        $base_id = parent::getBaseId($tags);
         
-        Redis::rpush($tags . '_' . $type, $base_id);
-        Cache::store('redis')
-            ->tags([$tags . '_' . $type])
-            ->forever($base_id, $data);
+        //Redis::rpush($tags . '_' . $type, $base_id);
+        parent::setListCache($tags, $type, $base_id);
+
+        parent::setTagsCache($tags, $type, $base_id, $data);
+        // Cache::store('redis')
+        //     ->tags([$tags . '_' . $type])
+        //     ->forever($base_id, $data);
         
         Log::info('# setInputGetBaseId #'  
             . ', ['. $tags . '_' . $type . ']' 
