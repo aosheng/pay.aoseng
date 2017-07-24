@@ -39,6 +39,27 @@ define({ "api": [
           {
             "group": "config",
             "type": "string",
+            "optional": false,
+            "field": "sCorpCode",
+            "description": "<p>盤口號</p>"
+          },
+          {
+            "group": "config",
+            "type": "string",
+            "optional": false,
+            "field": "sOrderID",
+            "description": "<p>訂單編號</p>"
+          },
+          {
+            "group": "config",
+            "type": "string",
+            "optional": false,
+            "field": "iUserKey",
+            "description": "<p>用戶ID</p>"
+          },
+          {
+            "group": "config",
+            "type": "string",
             "optional": true,
             "field": "payment",
             "defaultValue": "pay",
@@ -219,7 +240,7 @@ define({ "api": [
       "examples": [
         {
           "title": "Request templte ",
-          "content": "POST /api/Api500EasyPay/store \n{\n    \"config\":\n        {\n            \"payment\":\"pay\",\n            \"merNo\":\"QYF201705260107\",\n            \"signKey\":\"2566AE677271D6B88B2476BBF923ED88\",\n            \"encKey\":\"GiWBZqsJ4GYZ8G8psuvAsTo3\",\n            \"payUrl\":\"http:\\/\\/47.90.116.117:90\\/api\\/pay.action\",\n            \"remitUrl\":\"http:\\/\\/47.90.116.117:90\\/api\\/remit.action\"\n        },\n    \"pay\":\n        {\n            \"version\":\"V2.0.0.0\",\n            \"merNo\":\"QYF201705260107\",\n            \"netway\":\"WX\",\"random\":\"7453\",\n            \"orderNum\":\"201707031204515715\",\n            \"amount\":\"100\",\n            \"goodsName\":\"\\u6d4b\\u8bd5\\u652f\\u4ed8WX\",\n            \"charset\":\"utf-8\",\n            \"callBackUrl\":\"http:\\/\\/pay.aosheng.com\\/api\\/Api500EasyPay\\/pay_callback\",\n            \"callBackViewUrl\":\"\"\n         }\n}",
+          "content": "POST /api/Api500EasyPay/store \n{\n    \"config\":\n        {\n            \"sCorpCode\":\"S001\",\n            \"sOrderID\":\"20170714170127\",\n            \"iUserKey\":\"test123\",\n            \"payment\":\"pay\",\n            \"merNo\":\"QYF201705260107\",\n            \"signKey\":\"2566AE677271D6B88B2476BBF923ED88\",\n            \"encKey\":\"GiWBZqsJ4GYZ8G8psuvAsTo3\",\n            \"payUrl\":\"http:\\/\\/47.90.116.117:90\\/api\\/pay.action\",\n            \"remitUrl\":\"http:\\/\\/47.90.116.117:90\\/api\\/remit.action\"\n        },\n    \"pay\":\n        {\n            \"version\":\"V2.0.0.0\",\n            \"merNo\":\"QYF201705260107\",\n            \"netway\":\"WX\",\"random\":\"7453\",\n            \"orderNum\":\"201707031204515715\",\n            \"amount\":\"100\",\n            \"goodsName\":\"\\u6d4b\\u8bd5\\u652f\\u4ed8WX\",\n            \"charset\":\"utf-8\",\n            \"callBackUrl\":\"http:\\/\\/pay.aosheng.com\\/api\\/Api500EasyPay\\/pay_callback\",\n            \"callBackViewUrl\":\"\"\n         }\n}",
           "type": "json"
         },
         {
