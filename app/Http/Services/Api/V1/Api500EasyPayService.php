@@ -19,12 +19,14 @@ class Api500EasyPayService
 
     protected $third = ['WX', 'ZFB', 'ZFB_WAP'];
 
-    const PAYMENTSERVICE = 'Api500EasyPay';
+    const PAYMENTSERVICE = 'EasyPay';
     const TYPEINPUTBASEID = 'input_base_id';
     const TYPERESPONSEGETQRCODE ='response_get_qrcode';
     const TYPESAVECALLBACK = 'save_call_back';
     const TYPEWAITCALLBACK = 'wait_call_back';
+    const TYPECHECKCALLBACK = 'check_call_back';
     const TYPESEND = 'send';
+    const TYPEQRCODE = 'qrcode';
 
     const GETQRCODETIMES = 8;
     
@@ -78,7 +80,7 @@ class Api500EasyPayService
         
         $has_qrcode_base_id = $this->cache_service->hasQrcodeBaseId(
             self::PAYMENTSERVICE,
-            self::TYPEINPUTBASEID,
+            self::TYPEQRCODE,
             $params->config->merNo,
             $params->pay->orderNum
         );
@@ -203,6 +205,23 @@ class Api500EasyPayService
                 $status
             );
             
+            if ($status['stateCode'] === '00') {
+                $this->cache_service->setCallBackWaitCache(
+                    self::PAYMENTSERVICE,
+                    self::TYPEWAITCALLBACK,
+                    $base_id,
+                    $status
+                );
+
+                $this->cache_service->saveQrcodeBaseId(
+                    self::PAYMENTSERVICE,
+                    self::TYPEQRCODE,
+                    $status['merNo'],
+                    $status['orderNum'],
+                    $base_id
+                );
+            }
+            
             $is_delete = $this->cache_service->deleteListCache(
                 self::PAYMENTSERVICE,
                 self::TYPEINPUTBASEID,
@@ -259,7 +278,7 @@ class Api500EasyPayService
         // 確認是否已發過
         $check_call_back = $this->cache_service->checkCallBackCache(
             self::PAYMENTSERVICE,
-            self::TYPESAVECALLBACK,
+            self::TYPECHECKCALLBACK,
             $params->merNo,
             $params->orderNum
         );
@@ -424,9 +443,9 @@ class Api500EasyPayService
             $get_qrcode = self::getResponseQrcode($tags, $type, $base_id, $i);
         }
         Log::info('# get qrcode end #' 
-            . 'ts = ' . $i
-            . 'get_qrcode = ' . print_r($get_qrcode, true)
-            . 'FILE = ' . __FILE__ . 'LINE:' . __LINE__
+            . ', ts = ' . $i
+            . ', get_qrcode = ' . print_r($get_qrcode, true)
+            . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
         );
 
         if (!$get_qrcode) {

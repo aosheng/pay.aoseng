@@ -20,6 +20,7 @@ class SendCallBackToAdmin implements ShouldQueue
     private $base_id;
 
     const TYPEWAITCALLBACK = 'wait_call_back';
+    const TYPECHEAKCALLBACK = 'check_call_back';
     
     /**
      * Create a new job instance.
@@ -54,6 +55,13 @@ class SendCallBackToAdmin implements ShouldQueue
             . ', type = ' . $this->type
             . ', base_id = ' . $this->base_id
             . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
+        );
+
+        $this->cache_service->saveCheckCallBackCache(
+            $this->tags,
+            self::TYPECHEAKCALLBACK,
+            $this->call_back_data['merNo'],
+            $this->call_back_data['orderNum']
         );
 
         $is_delete = $this->cache_service->deleteListCache(
