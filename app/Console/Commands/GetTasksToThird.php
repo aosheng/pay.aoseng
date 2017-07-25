@@ -50,7 +50,7 @@ class GetTasksToThird extends Command
     {
         $this->tags = $this->argument('payment');
 
-        $task_data = $this->cache_service->getInputCacheList($this->tags, self::TYPEINPUTBASEID);
+        $task_data = $this->cache_service->getInputListData($this->tags, self::TYPEINPUTBASEID);
        
         Log::info('# Tothird:GetTasksToThird start #' 
             . ', task_data = ' . print_r($task_data, true)
