@@ -63,4 +63,36 @@ class BaseCacheHelper
             ->tags([$tags . '_' . $type])
             ->get($id);
     }
+    /**
+     * delete redis list value
+     * @param [String] $tags 支付別名
+     * @param [String] $type 組別
+     * @param [String] $value 
+     * @return boolean
+     */  
+    public function deleteListValue($tags, $type, $value)
+    {
+        if (empty($tags) || empty($type) || empty($value)) {
+            throw new \Exception('Delete Cache List Value Error');
+        }
+
+        return Redis::LREM($tags . '_' . $type, 0, $value);
+    }
+    /**
+     * delete redis tags data
+     * @param [String] $tags 支付別名
+     * @param [String] $type 組別
+     * @param [String] $value 
+     * @return boolean
+     */  
+    public function deleteTagsValue($tags, $type, $value)
+    {
+        if (empty($tags) || empty($type) || empty($value)) {
+            throw new \Exception('Delete Cache Value Error');
+        }
+
+        return Cache::store('redis')
+            ->tags([$tags . '_' . $type])
+            ->forget($value);
+    }
 }

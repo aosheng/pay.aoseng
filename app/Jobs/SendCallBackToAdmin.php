@@ -63,28 +63,10 @@ class SendCallBackToAdmin implements ShouldQueue
             $this->call_back_data['merNo'],
             $this->call_back_data['orderNum']
         );
-
-        $is_delete = $this->cache_service->deleteListCache(
+        $this->cache_service->deleteCache(
             $this->tags,
             self::TYPEWAITCALLBACK,
             $this->call_back_data['merNo'] . '_' . $this->call_back_data['orderNum']
-        );
-        Log::info('# delete list #'
-            . ', is_delete = ' . $is_delete
-            . ', [' . $this->tags . '_' . self::TYPEWAITCALLBACK .']'
-            . ', merNo_ordernum = ' . $this->call_back_data['merNo'] . '_' . $this->call_back_data['orderNum'] 
-            . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
-        );
-        $is_delete_tags = $this->cache_service->deleteTagsCache(
-            $this->tags,
-            self::TYPEWAITCALLBACK,
-            $this->call_back_data['merNo'] . '_' . $this->call_back_data['orderNum']
-        );
-        Log::info('# forget tags data #'
-            . ', is_delete_tags = ' . $is_delete_tags
-            . ', [' . $this->tags . '_' . self::TYPEWAITCALLBACK .']' 
-            . ', merNo_ordernum = ' . $this->call_back_data['merNo'] . '_' . $this->call_back_data['orderNum'] 
-            . ', FILE = '. __FILE__ . 'LINE:' . __LINE__
         );
         
         // TODO: 通知後台更新, 再删除save call back cache, 如cache 已被刪除, 需去資料庫抓取

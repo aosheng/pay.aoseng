@@ -88,28 +88,11 @@ class SaveRedisResponseGetQrcodeData implements ShouldQueue
                 . ', update_waiting_data = ' . print_r($update_waiting, true)
                 . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
             );
-
-            $is_delete = $this->cache_service->deleteListCache(
+            
+            $this->cache_service->deleteCache(
                 $this->tags,
                 $this->type,
                 $get_qrcode['base_id']
-            );
-            Log::info('# delete list #'
-                . ', is_delete = ' . $is_delete
-                . ', [' . $this->tags . '_' . $this->type .']'
-                . ', base_id = ' . $get_qrcode['base_id']
-                . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
-            );
-            $is_delete_tags = $this->cache_service->deleteTagsCache(
-                $this->tags,
-                $this->type,
-                $get_qrcode['base_id']
-            );
-            Log::info('# forget tags data #'
-                . ', is_delete_tags = ' . $is_delete_tags
-                . ', [' . $this->tags . '_' . $this->type .']' 
-                . ', base_id = ' . $get_qrcode['base_id']
-                . ', FILE = '. __FILE__ . 'LINE:' . __LINE__
             );
             DB::commit();
         } catch (\QueryException $exception) {

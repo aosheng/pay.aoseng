@@ -123,7 +123,7 @@ class Api500EasyPayCacheService  extends BaseCacheHelper
      * @param [String] $type 組別(response_get_qrcode)
      * @param [String] $base_id 唯一key
      * @param [array] $data 第三方狀態資料
-     * @return null
+     * @return void
      */
     public function setResponseCache($tags, $type, $base_id, $data)
     {
@@ -143,7 +143,7 @@ class Api500EasyPayCacheService  extends BaseCacheHelper
      * @param [String] $type 組別(wait_call_back)
      * @param [String] $base_id 唯一key
      * @param [array] $data 第三方狀態資料
-     * @return null
+     * @return void
      * 第三方無法帶 base_id 過去, 先用商戶號 + 訂單做標記
      */
     public function setCallBackWaitCache($tags, $type, $base_id, $data)
@@ -167,7 +167,7 @@ class Api500EasyPayCacheService  extends BaseCacheHelper
      * @param [String] $type 組別(save_call_back)
      * @param [String] $base_id 唯一key
      * @param [json] $data
-     * @return null
+     * @return void
      */
     public function saveCallBackCache($tags, $type, $base_id, $data)
     {
@@ -223,7 +223,7 @@ class Api500EasyPayCacheService  extends BaseCacheHelper
      */
     public function saveCheckCallBackCache($tags, $type, $merNo, $orderNum)
     {
-        return parent::setTagsCache($tags, $type, $merNo . '_' . $orderNum, true);
+        parent::setTagsCache($tags, $type, $merNo . '_' . $orderNum, true);
     }
     /**
      * 確認call back 是否已送回
@@ -255,7 +255,7 @@ class Api500EasyPayCacheService  extends BaseCacheHelper
      * @param [String] $merNo 商戶號
      * @param [Int] $orderNum 訂單編號
      * @param [String] $value
-     * @return null
+     * @return void
      */   
     public function saveQrcodeBaseId($tags, $type, $merNo, $orderNum, $value)
     {
@@ -281,7 +281,7 @@ class Api500EasyPayCacheService  extends BaseCacheHelper
      */
     public function getResponseQrcodeList($tags, $type)
     {
-        return Redis::lrange($tags . '_' . $type, 0, self::SENDLISTLIMIT);
+        return parent::getListCache($tags, $type);
     }
     /**
      * 回傳的Qrcode
@@ -292,32 +292,24 @@ class Api500EasyPayCacheService  extends BaseCacheHelper
      */
     public function getResponseQrcode($tags, $type, $base_id)
     {
-        return Cache::store('redis')
-            ->tags([$tags . '_' . $type])
-            ->get($base_id);
+        return parent::getCacheValue($tags, $type, $base_id);
     }
     /**
-     * 刪除 redis list key
+     * 刪除 Cache
      * @param [String] $tags 支付別名
      * @param [String] $type 組別
      * @param [String] $base_id 唯一key
-     * @return boolean
-     */  
-    public function deleteListCache($tags, $type, $base_id)
+     * @return void
+     */
+    public function deleteCache($tags, $type, $base_id)
     {
-        return Redis::LREM($tags . '_' . $type, 0, $base_id);
-    }
-    /**
-     * 刪除 redis tags 儲存資料
-     * @param [String] $tags 支付別名
-     * @param [String] $type 組別
-     * @param [String] $base_id 唯一key
-     * @return boolean
-     */  
-    public function deleteTagsCache($tags, $type, $base_id)
-    {
-        return Cache::store('redis')
-            ->tags([$tags. '_' . $type])
-            ->forget($base_id);
+        parent::deleteListValue($tags, $type, $base_id);
+        parent::deleteTagsValue($tags, $type, $base_id);
+
+        Log::info('# Delete Cache success #'
+            . ', [' . $tags . '_' . $type . ']'
+            . ', base_id = ' . $base_id
+            . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
+        );   
     }
 }
