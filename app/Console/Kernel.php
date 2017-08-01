@@ -15,6 +15,7 @@ class Kernel extends ConsoleKernel
     protected $commands = [
         Commands\GetTasksToThird::class,
         Commands\GetRedisData::class,
+        Commands\ClearTimeOutCache::class,
     ];
 
     /**

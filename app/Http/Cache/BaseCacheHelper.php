@@ -5,10 +5,10 @@ use Exception;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Redis;
 use Log;
-
 class BaseCacheHelper
 {
     const SENDLISTLIMIT = 200;
+    const ZADDLISTLIMIT = 100;
 
     public function setPrtefix($String = 'default')
     {
@@ -26,6 +26,37 @@ class BaseCacheHelper
         }
 
         return $tags . '_' . uniqid();
+    }
+    /**
+     * 紀錄有序的資料
+     * @param string $tags 支付別名
+     * @param string $type 組別
+     * @param int $value 
+     * @param string $id 唯一key
+     * @return void
+     */
+    public function setZaddCach(string $tags, string $type, int $value, string $id)
+    {
+        if (empty($tags) || empty($type) || empty($value) || empty($id)) {
+            throw new \Exception('Zadd Cache Error');
+        }
+
+        Redis::zadd($tags . '_' . $type, $value, $id);
+    }
+    /**
+     * 取得已存入陣列
+     * @param string $tags 支付別名
+     * @param string $type 組別
+     * @param array $options 
+     * @return array
+     */
+    public function getZaddList(string $tags, string $type, $options = null)
+    {
+        if (empty($tags) || empty($type)) {
+            throw new \Exception('Get Zadd List Error');
+        }
+        
+        return Redis::zrange($tags . '_'. $type, '0', self::ZADDLISTLIMIT, $options);
     }
     /**
      * 寫入緩存清單
@@ -112,6 +143,7 @@ class BaseCacheHelper
      * @param [String] $type 組別
      * @param [String] $value 
      * @return boolean
+     * 內容已刪除, 但tag會殘留key
      */  
     public function deleteTagsValue(string $tags, string $type, string $value)
     {
