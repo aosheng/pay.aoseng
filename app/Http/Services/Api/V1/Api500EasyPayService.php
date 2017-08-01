@@ -222,27 +222,10 @@ class Api500EasyPayService
                 );
             }
             
-            $is_delete = $this->cache_service->deleteListCache(
+            $this->cache_service->deleteCache(
                 self::PAYMENTSERVICE,
                 self::TYPEINPUTBASEID,
                 $base_id
-            );
-            Log::info('# delete list #'
-                . ', is_delete = ' . $is_delete
-                . ', [' . self::PAYMENTSERVICE . '_' . self::TYPEINPUTBASEID .']'
-                . ', base_id = ' . $base_id 
-                . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
-            );
-            $is_delete_tags = $this->cache_service->deleteTagsCache(
-                self::PAYMENTSERVICE,
-                self::TYPEINPUTBASEID,
-                $base_id
-            );      
-            Log::info('# forget tags data #'
-                . ', is_delete_tags = ' . $is_delete_tags
-                . ', [' . self::PAYMENTSERVICE . '_' . self::TYPEINPUTBASEID .']' 
-                . ', base_id = ' . $base_id 
-                . ', FILE = '. __FILE__ . 'LINE:' . __LINE__
             );
         } catch (\Exception $exception) {
             Log::wanring('# get qrcode status #' 

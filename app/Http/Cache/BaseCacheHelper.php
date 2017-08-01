@@ -14,7 +14,11 @@ class BaseCacheHelper
     {
         return Cache::store('redis')->setPrefix($String);
     }
-
+    /**
+     * 取得唯一key
+     * @param string $tags 支付別名
+     * @return string
+     */
     public function getBaseId(string $tags)
     {
         if (empty($tags)) {
@@ -23,27 +27,45 @@ class BaseCacheHelper
 
         return $tags . '_' . uniqid();
     }
-
-    public function setListCache(string $tags, string $type, string $value)
+    /**
+     * 寫入緩存清單
+     * @param string $tags 支付別名
+     * @param string $type 組別
+     * @param string $id
+     * @return void
+     */
+    public function setListCache(string $tags, string $type, string $id)
     {
-        if (empty($tags) || empty($type) || empty($value)) {
+        if (empty($tags) || empty($type) || empty($id)) {
             throw new \Exception('Set List Cache Error');
         }
 
-        return Redis::rpush($tags . '_' . $type, $value);
+        Redis::rpush($tags . '_' . $type, $id);
     }
-
+    /**
+     * 寫入緩存資料
+     * @param string $tags 支付別名
+     * @param string $type 組別
+     * @param string $id 辨識id
+     * @param array $data
+     * @return void
+     */
     public function setTagsCache(string $tags, string $type, string $id, $data = array())
     {
         if (empty($tags) || empty($type) || empty($id)) {
             throw new \Exception('Set Tags Cache Error');
         }
 
-        return Cache::store('redis')
+        Cache::store('redis')
             ->tags([$tags . '_' . $type])
             ->forever($id, $data);
     }
-
+    /**
+     * 取得紀錄清單
+     * @param string $tags 支付別名
+     * @param string $type 組別
+     * @return array
+     */
     public function getListCache(string $tags, string $type)
     {
         if (empty($tags) || empty($type)) {
@@ -52,7 +74,13 @@ class BaseCacheHelper
 
         return Redis::lrange($tags . '_' . $type, 0, self::SENDLISTLIMIT);
     }
-
+    /**
+     * 取得 cahce 儲存的值
+     * @param string $tags 支付別名
+     * @param string $type 組別
+     * @param string $id 
+     * @return array or string
+     */
     public function getCacheValue(string $tags, string $type, string $id)
     {
         if (empty($tags) || empty($type) || empty($id)) {
@@ -62,5 +90,37 @@ class BaseCacheHelper
         return Cache::store('redis')
             ->tags([$tags . '_' . $type])
             ->get($id);
+    }
+    /**
+     * delete redis list value
+     * @param [String] $tags 支付別名
+     * @param [String] $type 組別
+     * @param [String] $value 
+     * @return boolean
+     */  
+    public function deleteListValue(string $tags, string $type, string $value)
+    {
+        if (empty($tags) || empty($type) || empty($value)) {
+            throw new \Exception('Delete Cache List Value Error');
+        }
+
+        return Redis::LREM($tags . '_' . $type, 0, $value);
+    }
+    /**
+     * delete redis tags data
+     * @param [String] $tags 支付別名
+     * @param [String] $type 組別
+     * @param [String] $value 
+     * @return boolean
+     */  
+    public function deleteTagsValue(string $tags, string $type, string $value)
+    {
+        if (empty($tags) || empty($type) || empty($value)) {
+            throw new \Exception('Delete Cache Value Error');
+        }
+
+        return Cache::store('redis')
+            ->tags([$tags . '_' . $type])
+            ->forget($value);
     }
 }
