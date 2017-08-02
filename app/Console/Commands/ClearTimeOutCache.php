@@ -45,14 +45,14 @@ class ClearTimeOutCache extends Command
 
         $clear_list = $this->base_cache->getZaddList($this->tags, 'timestamp', 'WITHSCORES');
 
-        $now = Carbon::now();
+        $today = Carbon::now();
 
         foreach ($clear_list as $base_id => $timestamp) {
             $after_one_day = Carbon::createFromTimeStamp($timestamp)->addDay();
-            if ($now->lt($after_one_day)) {
+            if ($today->lt($after_one_day)) {
                 return false;
             }
-            dispatch((new ClearTimeOutRedisCache($this->tags, $base_id))
+            dispatch((new ClearTimeOutRedisCache(['tags' => $this->tags, 'base_id'=> $base_id]))
                 ->onQueue('clear_timeout_redis'));
         }    
 

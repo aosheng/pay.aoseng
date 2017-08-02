@@ -143,7 +143,6 @@ class BaseCacheHelper
      * @param [String] $type 組別
      * @param [String] $value 
      * @return boolean
-     * 內容已刪除, 但tag會殘留key
      */  
     public function deleteTagsValue(string $tags, string $type, string $value)
     {
@@ -154,5 +153,36 @@ class BaseCacheHelper
         return Cache::store('redis')
             ->tags([$tags . '_' . $type])
             ->forget($value);
+    }
+    /**
+     * 刪除Zadd  資料
+     * @param string $tags 支付別名
+     * @param string $type 組別(timestamp)
+     * @param string $value
+     * @return boolean
+     */
+    public function deleteZaddValue(string $tags, string $type, string $value)
+    {
+        if (empty($tags) || empty($type) || empty($value)) {
+            throw new \Exception('Delete Cache Value Error');
+        }
+
+        return Redis::zrem($tags . '_' . $type, $value);
+    }
+    /**
+     * 刪除原生Sadd  資料
+     * @param string $tags 支付別名
+     * @param string $type 組別
+     * @param string $key
+     * @return boolean
+     */
+    public function deleteSaddValue(string $tags, string $type, string $key)
+    {
+        if (empty($tags) || empty($type) || empty($key)) {
+            throw new \Exception('Delete Cache Value Error');
+        }
+        return Cache::store('redis')
+            ->tags([$tags . '_' . $type])
+            ->forgetSadd($key);
     }
 }
