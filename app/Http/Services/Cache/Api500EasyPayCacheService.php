@@ -10,6 +10,7 @@ class Api500EasyPayCacheService  extends BaseCacheHelper
 {
     const SENDLISTLIMIT = 200;
     const TYPEWAITCALLBACK = 'wait_call_back';
+    const TYPETIMESTAMP = 'timestamp';
     
     public function __construct()
     {
@@ -31,7 +32,7 @@ class Api500EasyPayCacheService  extends BaseCacheHelper
         // 寫入唯一key做之後判別
         $data = array_merge($data, array('base_id' => $base_id));
         parent::setTagsCache($tags, $type, $base_id, $data);
-
+        self::setTimestamp($tags, $base_id);
         Log::info('# setInputGetBaseId #'  
             . ', ['. $tags . '_' . $type . ']' 
             . ', base_id = ' . $base_id 
@@ -150,12 +151,7 @@ class Api500EasyPayCacheService  extends BaseCacheHelper
     {  
         parent::setListCache($tags, $type, $data['merNo'] . '_' . $data['orderNum']);
         parent::setTagsCache($tags, $type, $data['merNo'] . '_' . $data['orderNum'], $base_id);
-
-        //Redis::rpush($tags . '_' . $type, $data['merNo'] . '_' . $data['orderNum']);
-        //Cache::store('redis')
-        //     ->tags([$tags . '_' . $type])
-        //     ->forever($data['merNo'] . '_' . $data['orderNum'], $base_id);
-
+        self::setTimestamp($tags, $data['merNo'] . '_' . $data['orderNum']);
         Log::info('# setCallBackWaitCache #' 
             . ', ['. $tags . '_' . $type .']' 
             . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
@@ -311,5 +307,15 @@ class Api500EasyPayCacheService  extends BaseCacheHelper
             . ', base_id = ' . $base_id
             . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
         );   
+    }
+    /**
+     * 儲存 base_id timestamp
+     * @param [type] $tags 支付別名
+     * @param [type] $id 唯一key
+     * @return void
+     */
+    private function setTimestamp($tags, $id)
+    {
+        parent::setZaddCach($tags, self::TYPETIMESTAMP, time(), $id);
     }
 }
