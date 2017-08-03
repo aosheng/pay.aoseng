@@ -29,17 +29,20 @@ class Kernel extends ConsoleKernel
         // $schedule->command('inspire')
         //          ->hourly();
         if (env('APP_ENV') == 'production') {
-            $schedule->command('Tothird:GetTasksToThird')
+            $schedule->command('Tothird:GetTasksToThird EasyPay')
                 ->cron('0/2 * * * * *');
 
-            $schedule->command('Redis_Action:GetData Api500EasyPay send')
-            ->hourlyAt(5);
+            $schedule->command('Redis_Action:GetData EasyPay send')
+                ->hourlyAt(5);
 
-            $schedule->command('Redis_Action:GetData Api500EasyPay response get_qrcode')
-            ->hourlyAt(10);
+            $schedule->command('Redis_Action:GetData EasyPay response get_qrcode')
+                ->hourlyAt(10);
 
-            $schedule->command('Redis_Action:GetData Api500EasyPay save call_back')
-            ->hourlyAt(15);
+            $schedule->command('Redis_Action:GetData EasyPay save call_back')
+                ->hourlyAt(15);
+
+            $schedule->command('Clear:TimeOutCache EasyPay')
+                ->dailyAt('03:00');
         }
     }
 

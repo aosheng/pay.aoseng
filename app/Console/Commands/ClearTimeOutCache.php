@@ -14,7 +14,7 @@ class ClearTimeOutCache extends Command
      *
      * @var string
      */
-    protected $signature = 'Clear:timeout_cache {payment}';
+    protected $signature = 'Clear:TimeOutCache {payment}';
 
     /**
      * The console command description.
@@ -54,7 +54,6 @@ class ClearTimeOutCache extends Command
             }
             dispatch((new ClearTimeOutRedisCache(['tags' => $this->tags, 'base_id'=> $base_id]))
                 ->onQueue('clear_timeout_redis'));
-        }    
-
+        }
     }
 }

@@ -152,11 +152,6 @@ class Api500EasyPayCacheService  extends BaseCacheHelper
         parent::setListCache($tags, $type, $data['merNo'] . '_' . $data['orderNum']);
         parent::setTagsCache($tags, $type, $data['merNo'] . '_' . $data['orderNum'], $base_id);
         self::setTimestamp($tags, $data['merNo'] . '_' . $data['orderNum']);
-        //Redis::rpush($tags . '_' . $type, $data['merNo'] . '_' . $data['orderNum']);
-        //Cache::store('redis')
-        //     ->tags([$tags . '_' . $type])
-        //     ->forever($data['merNo'] . '_' . $data['orderNum'], $base_id);
-
         Log::info('# setCallBackWaitCache #' 
             . ', ['. $tags . '_' . $type .']' 
             . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__

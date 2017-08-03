@@ -47,8 +47,8 @@ class ClearTimeOutRedisCache implements ShouldQueue
         $base_id = $this->msagess['base_id'];
         
         array_walk($type, function($value, $key) use($tags, $base_id) {
-            $is_delete = $this->base_cache->deleteListValue($tags, $value, $base_id);
-            $is_delete_list = $this->base_cache->deleteTagsValue($tags, $value, $base_id);
+            $this->base_cache->deleteListValue($tags, $value, $base_id);
+            $this->base_cache->deleteTagsValue($tags, $value, $base_id);
             $this->base_cache->deleteSaddValue($tags, $value, $base_id);
         });
 
