@@ -58,9 +58,9 @@ class GetTasksToThird extends Command
         );
 
         if (empty($task_data)) {
-            Log::warning('# Tothird:GetTasksToThird warning # No data'
-                . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
-            );
+            // Log::warning('# Tothird:GetTasksToThird warning # No data'
+            //     . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
+            // );
             return false;
         }
 
