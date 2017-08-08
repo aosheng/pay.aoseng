@@ -30,7 +30,7 @@ class Kernel extends ConsoleKernel
         //          ->hourly();
         if (env('APP_ENV') == 'production') {
             $schedule->command('Tothird:GetTasksToThird EasyPay')
-                ->cron('0/2 * * * * *');
+                ->cron('* * * * sleep 2');
 
             $schedule->command('Redis_Action:GetData EasyPay send')
                 ->hourlyAt(5);

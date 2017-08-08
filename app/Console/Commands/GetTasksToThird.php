@@ -3,7 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Http\Services\Cache\Api500EasyPayCacheService;
-use App\jobs\GetTasksToThird as GetQrcode;
+use App\Jobs\GetTasksToThird as GetQrcode;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Log;

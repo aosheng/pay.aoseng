@@ -41,7 +41,7 @@ class Api500EasyPayService
     public function __construct(Api500EasyPayCacheService $Api500EasyPayCacheService)
     {
         require_once(base_path() . '/resources/ThirdPay/500EasyPay/Util.php');
-        require_once(base_path() . '/resources/ThirdPay/500EasyPay/json.php');
+        require_once(base_path() . '/resources/ThirdPay/500EasyPay/Json.php');
         require_once(base_path() . '/resources/ThirdPay/500EasyPay/Des3.class.php');
         // 時區設置會影響第三方判斷訂單正確性
         date_default_timezone_set("PRC");
