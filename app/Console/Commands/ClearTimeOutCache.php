@@ -3,7 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Http\Cache\BaseCacheHelper;
-use App\jobs\ClearTimeOutRedisCache;
+use App\Jobs\ClearTimeOutRedisCache;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 

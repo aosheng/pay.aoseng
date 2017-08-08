@@ -3,9 +3,9 @@
 namespace App\Console\Commands;
 
 use App\Http\Services\Cache\Api500EasyPayCacheService;
-use App\jobs\SaveRedisResponseCallBackData;
-use App\jobs\SaveRedisResponseGetQrcodeData;
-use App\jobs\SaveRedisSendData;
+use App\Jobs\SaveRedisResponseCallBackData;
+use App\Jobs\SaveRedisResponseGetQrcodeData;
+use App\Jobs\SaveRedisSendData;
 use Illuminate\Console\Command;
 
 class GetRedisData extends Command
