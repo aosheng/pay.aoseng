@@ -52,13 +52,16 @@ class SaveRedisResponseGetQrcodeData implements ShouldQueue
         $this->cache_service = $Api500EasyPayCacheService;
 
         $get_qrcode['base_id'] = $this->base_id;
-        $get_qrcode['merNo'] = $this->redis_response_get_qrcode['merNo'];
-        $get_qrcode['msg'] = $this->redis_response_get_qrcode['msg'];
-        $get_qrcode['orderNum'] = $this->redis_response_get_qrcode['orderNum'];
-        $get_qrcode['qrcodeUrl'] = $this->redis_response_get_qrcode['qrcodeUrl'];
-        $get_qrcode['sign'] = Crypt::encrypt($this->redis_response_get_qrcode['sign']);
         $get_qrcode['stateCode'] = $this->redis_response_get_qrcode['stateCode'];
-
+        $get_qrcode['msg'] = $this->redis_response_get_qrcode['msg'];
+       
+        if ($get_qrcode['stateCode'] === '00') {
+            $get_qrcode['merNo'] = $this->redis_response_get_qrcode['merNo'];
+            $get_qrcode['orderNum'] = $this->redis_response_get_qrcode['orderNum'];
+            $get_qrcode['qrcodeUrl'] = $this->redis_response_get_qrcode['qrcodeUrl'];
+            $get_qrcode['sign'] = Crypt::encrypt($this->redis_response_get_qrcode['sign']);
+        }
+        
         Log::info('# redis_response_get_qrcode #'
             . ', base_id = ' . $this->base_id
             . ', redis_response_get_qrcode = ' . print_r($this->redis_response_get_qrcode, true)
