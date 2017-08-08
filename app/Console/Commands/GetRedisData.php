@@ -95,7 +95,7 @@ class GetRedisData extends Command
                     $base_id
                 );
                 
-                if ($response_get_qrcode_data) {
+                if (! empty($response_get_qrcode_data)) {
                     dispatch((new SaveRedisResponseGetQrcodeData(
                         $this->tags,
                         $this->action . '_' . $this->other,
