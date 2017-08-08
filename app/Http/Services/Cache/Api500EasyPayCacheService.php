@@ -54,11 +54,11 @@ class Api500EasyPayCacheService  extends BaseCacheHelper
         $return_data = [];
 
         if (!$tasks) {
-            Log::info('# getCache tasks null #'
-                . ', tags = ' . $tags
-                . ', type = ' . $type
-                . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
-            );
+            // Log::info('# getCache tasks null #'
+            //     . ', tags = ' . $tags
+            //     . ', type = ' . $type
+            //     . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
+            // );
             return false;
         }
 
