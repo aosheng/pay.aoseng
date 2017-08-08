@@ -52,10 +52,10 @@ class GetTasksToThird extends Command
 
         $task_data = $this->cache_service->getInputListData($this->tags, self::TYPEINPUTBASEID);
        
-        Log::info('# Tothird:GetTasksToThird start #' 
-            . ', task_data = ' . print_r($task_data, true)
-            . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
-        );
+        // Log::info('# Tothird:GetTasksToThird start #' 
+        //     . ', task_data = ' . print_r($task_data, true)
+        //     . ', FILE = ' . __FILE__ . 'LINE:' . __LINE__
+        // );
 
         if (empty($task_data)) {
             // Log::warning('# Tothird:GetTasksToThird warning # No data'

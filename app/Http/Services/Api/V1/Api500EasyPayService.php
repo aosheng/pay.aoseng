@@ -3,7 +3,7 @@ namespace App\Http\Services\Api\V1;
 
 use App\Http\Services\Cache\Api500EasyPayCacheService;
 use App\Models\EasyPaySend;
-use App\jobs\SendCallBackToAdmin;
+use App\Jobs\SendCallBackToAdmin;
 use Cache;
 use Crypt;
 use Dingo\Api\Routing\Helpers;
